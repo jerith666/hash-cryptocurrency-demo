@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Html
 import Html.Attributes as Attr
 import Lamdera
+import SHA256
 import Types exposing (..)
 import Url
 
@@ -65,15 +66,11 @@ updateFromBackend msg model =
 
 view : Model -> Browser.Document FrontendMsg
 view model =
-    { title = ""
+    { title = "Hash and Cryptocurrency Demo"
     , body =
-        [ Html.div [ Attr.style "text-align" "center", Attr.style "padding-top" "40px" ]
-            [ Html.img [ Attr.src "https://lamdera.app/lamdera-logo-black.png", Attr.width 150 ] []
-            , Html.div
-                [ Attr.style "font-family" "sans-serif"
-                , Attr.style "padding-top" "40px"
-                ]
-                [ Html.text model.message ]
+        [ Html.div []
+            [ Html.textarea [ Attr.value model.message, Attr.rows 10, Attr.cols 120 ] []
+            , Html.div [ Attr.style "font-family" "monospace" ] [ Html.text <| SHA256.toHex <| SHA256.fromString model.message ]
             ]
         ]
     }
