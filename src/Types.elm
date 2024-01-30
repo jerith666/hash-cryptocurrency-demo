@@ -19,7 +19,7 @@ type alias BackendModel =
 type FrontendMsg
     = UrlClicked UrlRequest
     | UrlChanged Url
-    | NoOpFrontendMsg
+    | UpdateMessage String
 
 
 type ToBackend

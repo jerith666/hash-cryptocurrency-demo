@@ -4,6 +4,7 @@ import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Html
 import Html.Attributes as Attr
+import Html.Events
 import Lamdera
 import SHA256
 import Types exposing (..)
@@ -29,7 +30,7 @@ app =
 init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
 init url key =
     ( { key = key
-      , message = "Welcome to Lamdera! You're looking at the auto-generated base implementation. Check out src/Frontend.elm to start coding!"
+      , message = ""
       }
     , Cmd.none
     )
@@ -53,8 +54,8 @@ update msg model =
         UrlChanged url ->
             ( model, Cmd.none )
 
-        NoOpFrontendMsg ->
-            ( model, Cmd.none )
+        UpdateMessage newMsg ->
+            ( { model | message = newMsg }, Cmd.none )
 
 
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
@@ -69,8 +70,16 @@ view model =
     { title = "Hash and Cryptocurrency Demo"
     , body =
         [ Html.div []
-            [ Html.textarea [ Attr.value model.message, Attr.rows 10, Attr.cols 120 ] []
-            , Html.div [ Attr.style "font-family" "monospace" ] [ Html.text <| SHA256.toHex <| SHA256.fromString model.message ]
+            [ Html.textarea
+                [ Attr.value model.message
+                , Attr.rows 10
+                , Attr.cols 120
+                , Html.Events.onInput UpdateMessage
+                ]
+                []
+            , Html.div
+                [ Attr.style "font-family" "monospace" ]
+                [ Html.text <| SHA256.toHex <| SHA256.fromString model.message ]
             ]
         ]
     }
