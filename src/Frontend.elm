@@ -18,8 +18,8 @@ type alias Model =
 app =
     Lamdera.frontend
         { init = init
-        , onUrlRequest = UrlClicked
-        , onUrlChange = UrlChanged
+        , onUrlRequest = \_ -> NoOpFrontendMsg
+        , onUrlChange = \_ -> NoOpFrontendMsg
         , update = update
         , updateFromBackend = updateFromBackend
         , subscriptions = \m -> Sub.none
@@ -28,9 +28,9 @@ app =
 
 
 init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
-init url key =
-    ( { key = key
-      , message = ""
+init _ _ =
+    ( { message = ""
+      , hashPrefixLen = Just 1
       }
     , Cmd.none
     )
@@ -39,23 +39,11 @@ init url key =
 update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
 update msg model =
     case msg of
-        UrlClicked urlRequest ->
-            case urlRequest of
-                Internal url ->
-                    ( model
-                    , Nav.pushUrl model.key (Url.toString url)
-                    )
-
-                External url ->
-                    ( model
-                    , Nav.load url
-                    )
-
-        UrlChanged url ->
-            ( model, Cmd.none )
-
         UpdateMessage newMsg ->
             ( { model | message = newMsg }, Cmd.none )
+
+        NoOpFrontendMsg ->
+            ( model, Cmd.none )
 
 
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
@@ -67,6 +55,18 @@ updateFromBackend msg model =
 
 view : Model -> Browser.Document FrontendMsg
 view model =
+    let
+        fullHash =
+            SHA256.toHex <| SHA256.fromString model.message
+
+        hash =
+            case model.hashPrefixLen of
+                Nothing ->
+                    fullHash
+
+                Just len ->
+                    String.left len fullHash
+    in
     { title = "Hash and Cryptocurrency Demo"
     , body =
         [ Html.div []
@@ -79,7 +79,7 @@ view model =
                 []
             , Html.div
                 [ Attr.style "font-family" "monospace" ]
-                [ Html.text <| SHA256.toHex <| SHA256.fromString model.message ]
+                [ Html.text hash ]
             ]
         ]
     }

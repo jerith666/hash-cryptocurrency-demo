@@ -6,8 +6,8 @@ import Url exposing (Url)
 
 
 type alias FrontendModel =
-    { key : Key
-    , message : String
+    { message : String
+    , hashPrefixLen : Maybe Int
     }
 
 
@@ -17,8 +17,7 @@ type alias BackendModel =
 
 
 type FrontendMsg
-    = UrlClicked UrlRequest
-    | UrlChanged Url
+    = NoOpFrontendMsg
     | UpdateMessage String
 
 
