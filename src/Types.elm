@@ -7,7 +7,7 @@ import Url exposing (Url)
 
 type alias FrontendModel =
     { message : String
-    , hashPrefixLen : Maybe Int
+    , hashPrefixLen : Int
     }
 
 
@@ -19,6 +19,7 @@ type alias BackendModel =
 type FrontendMsg
     = NoOpFrontendMsg
     | UpdateMessage String
+    | UpdatePrefixLen String
 
 
 type ToBackend

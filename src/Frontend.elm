@@ -7,6 +7,7 @@ import Html.Attributes as Attr
 import Html.Events
 import Lamdera
 import SHA256
+import String exposing (fromInt)
 import Types exposing (..)
 import Url
 
@@ -30,7 +31,7 @@ app =
 init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
 init _ _ =
     ( { message = ""
-      , hashPrefixLen = Just 1
+      , hashPrefixLen = 1
       }
     , Cmd.none
     )
@@ -41,6 +42,14 @@ update msg model =
     case msg of
         UpdateMessage newMsg ->
             ( { model | message = newMsg }, Cmd.none )
+
+        UpdatePrefixLen newLenStr ->
+            case String.toInt newLenStr of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just newLen ->
+                    ( { model | hashPrefixLen = newLen }, Cmd.none )
 
         NoOpFrontendMsg ->
             ( model, Cmd.none )
@@ -56,16 +65,10 @@ updateFromBackend msg model =
 view : Model -> Browser.Document FrontendMsg
 view model =
     let
-        fullHash =
-            SHA256.toHex <| SHA256.fromString model.message
-
         hash =
-            case model.hashPrefixLen of
-                Nothing ->
-                    fullHash
-
-                Just len ->
-                    String.left len fullHash
+            String.left model.hashPrefixLen <|
+                SHA256.toHex <|
+                    SHA256.fromString model.message
     in
     { title = "Hash and Cryptocurrency Demo"
     , body =
@@ -75,6 +78,14 @@ view model =
                 , Attr.rows 10
                 , Attr.cols 120
                 , Html.Events.onInput UpdateMessage
+                ]
+                []
+            , Html.input
+                [ Attr.type_ "range"
+                , Attr.min "1"
+                , Attr.max "64"
+                , Attr.value <| fromInt model.hashPrefixLen
+                , Html.Events.onInput UpdatePrefixLen
                 ]
                 []
             , Html.div
