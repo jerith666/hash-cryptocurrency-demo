@@ -1,12 +1,13 @@
 module Frontend exposing (..)
 
+import Binary
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Html
 import Html.Attributes as Attr
 import Html.Events
 import Lamdera
-import SHA256
+import SHA
 import String exposing (fromInt)
 import Types exposing (..)
 import Url
@@ -14,6 +15,10 @@ import Url
 
 type alias Model =
     FrontendModel
+
+
+binaryDigits =
+    3
 
 
 app =
@@ -67,8 +72,12 @@ view model =
     let
         hash =
             String.left model.hashPrefixLen <|
-                SHA256.toHex <|
-                    SHA256.fromString model.message
+                String.concat <|
+                    List.map String.fromInt <|
+                        List.map Binary.toDecimal <|
+                            Binary.chunksOf binaryDigits <|
+                                SHA.sha256 <|
+                                    Binary.fromStringAsUtf8 model.message
     in
     { title = "Hash and Cryptocurrency Demo"
     , body =
