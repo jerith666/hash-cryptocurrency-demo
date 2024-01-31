@@ -64,11 +64,11 @@ updateFromBackend msg model =
             ( model, Cmd.none )
 
 
-view : Model -> Browser.Document FrontendMsg
-view model =
+hash : BinaryDigits -> Int -> String -> String
+hash binaryDigits prefixLen message =
     let
-        binaryDigits =
-            case model.binaryDigits of
+        binDigits =
+            case binaryDigits of
                 One ->
                     1
 
@@ -77,16 +77,18 @@ view model =
 
                 Three ->
                     3
-
-        hash =
-            String.left model.hashPrefixLen <|
-                String.concat <|
-                    List.map String.fromInt <|
-                        List.map Binary.toDecimal <|
-                            Binary.chunksOf binaryDigits <|
-                                SHA.sha256 <|
-                                    Binary.fromStringAsUtf8 model.message
     in
+    String.left prefixLen <|
+        String.concat <|
+            List.map String.fromInt <|
+                List.map Binary.toDecimal <|
+                    Binary.chunksOf binDigits <|
+                        SHA.sha256 <|
+                            Binary.fromStringAsUtf8 message
+
+
+view : Model -> Browser.Document FrontendMsg
+view model =
     { title = "Hash and Cryptocurrency Demo"
     , body =
         [ Html.div []
@@ -107,7 +109,7 @@ view model =
                 []
             , Html.div
                 [ Attr.style "font-family" "monospace" ]
-                [ Html.text hash ]
+                [ Html.text <| hash model.binaryDigits model.hashPrefixLen model.message ]
             ]
         ]
     }
