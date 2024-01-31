@@ -1,4 +1,4 @@
-module Frontend exposing (..)
+module Frontend exposing (app)
 
 import Binary
 import Browser exposing (UrlRequest(..))
