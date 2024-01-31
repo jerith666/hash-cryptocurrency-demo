@@ -34,6 +34,7 @@ init _ _ =
     ( { message = ""
       , hashPrefixLen = 1
       , binaryDigits = Three
+      , messages = [ "hello world", "goodbye world" ]
       }
     , Cmd.none
     )
@@ -89,6 +90,10 @@ hash binaryDigits prefixLen message =
 
 view : Model -> Browser.Document FrontendMsg
 view model =
+    let
+        hashFn =
+            hash model.binaryDigits model.hashPrefixLen
+    in
     { title = "Hash and Cryptocurrency Demo"
     , body =
         [ Html.div []
@@ -109,7 +114,17 @@ view model =
                 []
             , Html.div
                 [ Attr.style "font-family" "monospace" ]
-                [ Html.text <| hash model.binaryDigits model.hashPrefixLen model.message ]
+                [ Html.text <| hashFn model.message ]
+            , Html.table [] <|
+                [ Html.tr [] <| List.map (\t -> Html.td [] [ Html.text t ]) [ "message", "hash" ] ]
+                    ++ List.map
+                        (\m ->
+                            Html.tr []
+                                [ Html.td [] [ Html.text m ]
+                                , Html.td [ Attr.style "font-family" "monospace" ] [ Html.text <| hashFn m ]
+                                ]
+                        )
+                        model.messages
             ]
         ]
     }

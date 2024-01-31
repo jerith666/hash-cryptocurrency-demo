@@ -11,6 +11,7 @@ type alias FrontendModel =
     { message : String
     , hashPrefixLen : Int
     , binaryDigits : BinaryDigits
+    , messages : List String
     }
 
 
