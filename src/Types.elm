@@ -5,9 +5,16 @@ import Browser.Navigation exposing (Key)
 import Url exposing (Url)
 
 
+type BinaryDigits
+    = One
+    | Two
+    | Three
+
+
 type alias FrontendModel =
     { message : String
     , hashPrefixLen : Int
+    , binaryDigits : BinaryDigits
     }
 
 

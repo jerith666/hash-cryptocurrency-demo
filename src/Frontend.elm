@@ -17,10 +17,6 @@ type alias Model =
     FrontendModel
 
 
-binaryDigits =
-    3
-
-
 app =
     Lamdera.frontend
         { init = init
@@ -37,6 +33,7 @@ init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
 init _ _ =
     ( { message = ""
       , hashPrefixLen = 1
+      , binaryDigits = Three
       }
     , Cmd.none
     )
@@ -70,6 +67,17 @@ updateFromBackend msg model =
 view : Model -> Browser.Document FrontendMsg
 view model =
     let
+        binaryDigits =
+            case model.binaryDigits of
+                One ->
+                    1
+
+                Two ->
+                    2
+
+                Three ->
+                    3
+
         hash =
             String.left model.hashPrefixLen <|
                 String.concat <|
