@@ -1,6 +1,7 @@
 module Backend exposing (app)
 
-import Lamdera exposing (ClientId, SessionId)
+import Env
+import Lamdera exposing (ClientId, SessionId, sendToFrontend)
 import Types exposing (..)
 
 
@@ -19,7 +20,7 @@ app =
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { message = "Hello!" }
+    ( { teacher = Nothing, messages = [] }
     , Cmd.none
     )
 
@@ -34,5 +35,10 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
-        NoOpToBackend ->
-            ( model, Cmd.none )
+        TeacherLogin password ->
+            case password == Env.teacherPassword of
+                True ->
+                    ( { model | teacher = Just sessionId }, sendToFrontend clientId TeacherLoginOk )
+
+                False ->
+                    ( model, sendToFrontend clientId TeacherLoginBad )
