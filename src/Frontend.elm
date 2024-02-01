@@ -198,42 +198,48 @@ viewFe model =
     let
         hashFn =
             hash model.binaryDigits model.hashPrefixLen
-    in
-    [ Html.div []
-        [ Html.text <|
-            case model.role of
-                Teacher ->
-                    "teacher"
 
-                Student ->
-                    "student"
-        , Html.textarea
-            [ Attr.value model.message
-            , Attr.rows 10
-            , Attr.cols 120
-            , Html.Events.onInput UpdateMessage
-            ]
-            []
-        , Html.input
-            [ Attr.type_ "range"
-            , Attr.min "1"
-            , Attr.max "64"
-            , Attr.value <| fromInt model.hashPrefixLen
-            , Html.Events.onInput UpdatePrefixLen
-            ]
-            []
-        , Html.div
-            [ Attr.style "font-family" "monospace" ]
-            [ Html.text <| hashFn model.message ]
-        , Html.table [] <|
-            [ Html.tr [] <| List.map (\t -> Html.td [] [ Html.text t ]) [ "message", "hash" ] ]
-                ++ List.map
-                    (\m ->
-                        Html.tr []
-                            [ Html.td [] [ Html.text m ]
-                            , Html.td [ Attr.style "font-family" "monospace" ] [ Html.text <| hashFn m ]
-                            ]
-                    )
-                    model.messages
-        ]
+        msgArea =
+            Html.textarea
+                [ Attr.value model.message
+                , Attr.rows 5
+                , Attr.cols 80
+                , Html.Events.onInput UpdateMessage
+                ]
+                []
+
+        prefixSpinner =
+            Html.input
+                [ Attr.type_ "number"
+                , Attr.min "1"
+                , Attr.max "64"
+                , Attr.value <| fromInt model.hashPrefixLen
+                , Html.Events.onInput UpdatePrefixLen
+                ]
+                []
+
+        msgHash =
+            Html.div
+                [ Attr.style "font-family" "monospace" ]
+                [ Html.text <| hashFn model.message ]
+
+        msgsTable =
+            Html.table [] <|
+                [ Html.tr [] <| List.map (\t -> Html.td [] [ Html.text t ]) [ "message", "hash" ] ]
+                    ++ List.map
+                        (\m ->
+                            Html.tr []
+                                [ Html.td [] [ Html.text m ]
+                                , Html.td [ Attr.style "font-family" "monospace" ] [ Html.text <| hashFn m ]
+                                ]
+                        )
+                        model.messages
+    in
+    [ Html.div [] <|
+        case model.role of
+            Teacher ->
+                [ msgArea, prefixSpinner, msgHash, msgsTable ]
+
+            Student ->
+                [ msgArea, msgHash, msgsTable ]
     ]
