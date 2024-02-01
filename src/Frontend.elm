@@ -76,13 +76,21 @@ update msg model =
                 AnonFrontend _ _ ->
                     unexpected msg model
 
-                LoggedIn m ->
+                LoggedIn _ ->
                     case String.toInt newLenStr of
                         Nothing ->
                             ( model, Cmd.none )
 
                         Just newLen ->
                             ( model, sendToBackend <| UpdatePrefixLenBe newLen )
+
+        ShareMessageFe ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( model, sendToBackend <| ShareMessage m.message )
 
         NoOpFrontendMsg ->
             ( model, Cmd.none )
@@ -94,19 +102,21 @@ unexpected _ model =
 
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
+    let
+        initModel role =
+            { message = ""
+            , hashPrefixLen = 1
+            , binaryDigits = Three
+            , messages = []
+            , shareRequests = []
+            , role = role
+            }
+    in
     case msg of
         TeacherLoginOk ->
             case model of
                 AnonFrontend _ _ ->
-                    ( LoggedIn
-                        { message = ""
-                        , hashPrefixLen = 1
-                        , binaryDigits = Three
-                        , messages = []
-                        , role = Teacher
-                        }
-                    , Cmd.none
-                    )
+                    ( LoggedIn <| initModel Teacher, Cmd.none )
 
                 LoggedIn _ ->
                     unexpected msg model
@@ -127,15 +137,7 @@ updateFromBackend msg model =
                             unexpected msg model
 
                         _ ->
-                            ( LoggedIn
-                                { message = ""
-                                , hashPrefixLen = 1
-                                , binaryDigits = Three
-                                , messages = []
-                                , role = Student
-                                }
-                            , Cmd.none
-                            )
+                            ( LoggedIn <| initModel Student, Cmd.none )
 
                 LoggedIn _ ->
                     unexpected msg model
@@ -147,6 +149,14 @@ updateFromBackend msg model =
 
                 LoggedIn m ->
                     ( LoggedIn { m | hashPrefixLen = newLen }, Cmd.none )
+
+        ShareMessageRequest message ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( LoggedIn { m | shareRequests = m.shareRequests ++ [ message ] }, Cmd.none )
 
 
 hash : BinaryDigits -> Int -> String -> String
@@ -231,7 +241,10 @@ viewFe model =
                 [ Attr.style "font-family" "monospace" ]
                 [ Html.text <| hashFn model.message ]
 
-        msgsTable =
+        shareButton =
+            Html.button [ Html.Events.onClick ShareMessageFe ] [ Html.text "Share Message" ]
+
+        msgsTable messages =
             Html.table [] <|
                 [ Html.tr [] <| List.map (\t -> Html.td [] [ Html.text t ]) [ "message", "hash" ] ]
                     ++ List.map
@@ -241,13 +254,13 @@ viewFe model =
                                 , Html.td [ Attr.style "font-family" "monospace" ] [ Html.text <| hashFn m ]
                                 ]
                         )
-                        model.messages
+                        messages
     in
     [ Html.div [] <|
         case model.role of
             Teacher ->
-                [ msgArea, prefixSpinner, msgHash, msgsTable ]
+                [ msgArea, prefixSpinner, msgHash, shareButton, msgsTable model.messages, msgsTable model.shareRequests ]
 
             Student ->
-                [ msgArea, msgHash, msgsTable ]
+                [ msgArea, msgHash, shareButton, msgsTable model.messages ]
     ]

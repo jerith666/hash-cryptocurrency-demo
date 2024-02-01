@@ -76,6 +76,14 @@ updateFromFrontend sessionId clientId msg model =
                         False ->
                             unexpected msg model
 
+        ShareMessage message ->
+            case model.teacher of
+                Nothing ->
+                    unexpected msg model
+
+                Just t ->
+                    ( model, sendToFrontend t <| ShareMessageRequest message )
+
 
 unexpected msg model =
     ( model, Cmd.none )

@@ -31,6 +31,7 @@ type alias FeModel =
     , hashPrefixLen : Int
     , binaryDigits : BinaryDigits
     , messages : List String
+    , shareRequests : List String
     , role : ClientRole
     }
 
@@ -49,11 +50,13 @@ type FrontendMsg
     | WaitForTeacher
     | UpdateMessage String
     | UpdatePrefixLenFe String
+    | ShareMessageFe
 
 
 type ToBackend
     = TeacherLogin String
     | UpdatePrefixLenBe Int
+    | ShareMessage String
 
 
 type BackendMsg
@@ -65,3 +68,4 @@ type ToFrontend
     | TeacherLoginBad
     | TeacherArrived
     | PrefixLenUpdated Int
+    | ShareMessageRequest String
