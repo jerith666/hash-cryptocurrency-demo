@@ -37,6 +37,7 @@ type alias FeModel =
 
 type alias BackendModel =
     { teacher : Maybe SessionId
+    , hashPrefixLen : Int
     , messages : List String
     }
 
@@ -47,11 +48,12 @@ type FrontendMsg
     | Login
     | WaitForTeacher
     | UpdateMessage String
-    | UpdatePrefixLen String
+    | UpdatePrefixLenFe String
 
 
 type ToBackend
     = TeacherLogin String
+    | UpdatePrefixLenBe Int
 
 
 type BackendMsg
@@ -62,3 +64,4 @@ type ToFrontend
     = TeacherLoginOk
     | TeacherLoginBad
     | TeacherArrived
+    | PrefixLenUpdated Int

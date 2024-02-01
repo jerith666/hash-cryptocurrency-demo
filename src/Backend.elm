@@ -20,7 +20,10 @@ app =
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { teacher = Nothing, messages = [] }
+    ( { teacher = Nothing
+      , hashPrefixLen = 1
+      , messages = []
+      }
     , Cmd.none
     )
 
@@ -57,3 +60,22 @@ updateFromFrontend sessionId clientId msg model =
 
                 False ->
                     ( model, sendToFrontend clientId TeacherLoginBad )
+
+        UpdatePrefixLenBe newLen ->
+            case model.teacher of
+                Nothing ->
+                    unexpected msg model
+
+                Just t ->
+                    case t == sessionId of
+                        True ->
+                            ( { model | hashPrefixLen = newLen }
+                            , broadcast <| PrefixLenUpdated newLen
+                            )
+
+                        False ->
+                            unexpected msg model
+
+
+unexpected msg model =
+    ( model, Cmd.none )

@@ -71,7 +71,7 @@ update msg model =
                 LoggedIn m ->
                     ( LoggedIn { m | message = newMsg }, Cmd.none )
 
-        UpdatePrefixLen newLenStr ->
+        UpdatePrefixLenFe newLenStr ->
             case model of
                 AnonFrontend _ _ ->
                     unexpected msg model
@@ -82,7 +82,7 @@ update msg model =
                             ( model, Cmd.none )
 
                         Just newLen ->
-                            ( LoggedIn { m | hashPrefixLen = newLen }, Cmd.none )
+                            ( model, sendToBackend <| UpdatePrefixLenBe newLen )
 
         NoOpFrontendMsg ->
             ( model, Cmd.none )
@@ -139,6 +139,14 @@ updateFromBackend msg model =
 
                 LoggedIn _ ->
                     unexpected msg model
+
+        PrefixLenUpdated newLen ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( LoggedIn { m | hashPrefixLen = newLen }, Cmd.none )
 
 
 hash : BinaryDigits -> Int -> String -> String
@@ -214,7 +222,7 @@ viewFe model =
                 , Attr.min "1"
                 , Attr.max "64"
                 , Attr.value <| fromInt model.hashPrefixLen
-                , Html.Events.onInput UpdatePrefixLen
+                , Html.Events.onInput UpdatePrefixLenFe
                 ]
                 []
 
