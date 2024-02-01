@@ -47,6 +47,14 @@ update msg model =
                 LoggedIn _ ->
                     unexpected msg model
 
+        WaitForTeacher ->
+            case model of
+                AnonFrontend password _ ->
+                    ( AnonFrontend password WaitingForTeacher, Cmd.none )
+
+                LoggedIn _ ->
+                    unexpected msg model
+
         Login ->
             case model of
                 AnonFrontend password _ ->
@@ -111,6 +119,27 @@ updateFromBackend msg model =
                 LoggedIn _ ->
                     unexpected msg model
 
+        TeacherArrived ->
+            case model of
+                AnonFrontend _ state ->
+                    case state of
+                        LoginInProgress ->
+                            unexpected msg model
+
+                        _ ->
+                            ( LoggedIn
+                                { message = ""
+                                , hashPrefixLen = 1
+                                , binaryDigits = Three
+                                , messages = []
+                                , role = Student
+                                }
+                            , Cmd.none
+                            )
+
+                LoggedIn _ ->
+                    unexpected msg model
+
 
 hash : BinaryDigits -> Int -> String -> String
 hash binaryDigits prefixLen message =
@@ -142,6 +171,9 @@ view model =
         case model of
             AnonFrontend password state ->
                 case state of
+                    WaitingForTeacher ->
+                        [ Html.text "waiting for teacher ..." ]
+
                     LoginInProgress ->
                         [ Html.text "logging in ..." ]
 
@@ -151,7 +183,8 @@ view model =
                     LoginUnattempted ->
                         [ Html.div []
                             [ Html.input [ Attr.type_ "password", Attr.value password, Html.Events.onInput SetPassword ] []
-                            , Html.button [ Html.Events.onClick <| Login ] [ Html.text "log in" ]
+                            , Html.button [ Html.Events.onClick Login ] [ Html.text "log in" ]
+                            , Html.button [ Html.Events.onClick WaitForTeacher ] [ Html.text "wait for teacher" ]
                             ]
                         ]
 
@@ -167,7 +200,14 @@ viewFe model =
             hash model.binaryDigits model.hashPrefixLen
     in
     [ Html.div []
-        [ Html.textarea
+        [ Html.text <|
+            case model.role of
+                Teacher ->
+                    "teacher"
+
+                Student ->
+                    "student"
+        , Html.textarea
             [ Attr.value model.message
             , Attr.rows 10
             , Attr.cols 120

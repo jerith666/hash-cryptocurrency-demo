@@ -1,6 +1,6 @@
 module Types exposing (..)
 
-import Lamdera exposing (SessionId)
+import Lamdera exposing (ClientId, SessionId)
 
 
 type BinaryDigits
@@ -18,6 +18,7 @@ type AnonState
     = LoginUnattempted
     | LoginInProgress
     | LoginFailed
+    | WaitingForTeacher
 
 
 type FrontendModel
@@ -44,6 +45,7 @@ type FrontendMsg
     = NoOpFrontendMsg
     | SetPassword String
     | Login
+    | WaitForTeacher
     | UpdateMessage String
     | UpdatePrefixLen String
 
@@ -53,9 +55,10 @@ type ToBackend
 
 
 type BackendMsg
-    = NoOpBackendMsg
+    = NewClient SessionId ClientId
 
 
 type ToFrontend
     = TeacherLoginOk
     | TeacherLoginBad
+    | TeacherArrived
