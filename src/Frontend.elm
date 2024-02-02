@@ -63,6 +63,9 @@ update msg model =
                 LoggedIn _ ->
                     unexpected msg model
 
+        ReLogin ->
+            ( AnonFrontend "" LoginUnattempted, Cmd.none )
+
         UpdateMessage newMsg ->
             case model of
                 AnonFrontend _ _ ->
@@ -159,8 +162,15 @@ updateFromBackend msg model =
                         _ ->
                             ( LoggedIn <| initModel beModel [] Student, Cmd.none )
 
-                LoggedIn _ ->
-                    unexpected msg model
+                LoggedIn m ->
+                    case m.role of
+                        Student ->
+                            unexpected msg model
+
+                        Teacher ->
+                            -- someone else has taken over the Teacher role;
+                            -- downgrade ourselves to a Student
+                            ( LoggedIn <| initModel beModel [] Student, Cmd.none )
 
         PrefixLenUpdated newLen ->
             case model of
@@ -289,6 +299,9 @@ viewFe model =
                                     ++ shareMaker m
                         )
                         messages
+
+        teacherLogin =
+            Html.button [ Html.Events.onClick ReLogin ] [ Html.text "T" ]
     in
     [ Html.div [] <|
         case model.role of
@@ -296,5 +309,5 @@ viewFe model =
                 [ msgArea, prefixSpinner, msgHash, shareButton, msgsTable model.messages <| always [], msgsTable model.shareRequests shareDecision ]
 
             Student ->
-                [ msgArea, msgHash, shareButton, msgsTable model.messages <| always [] ]
+                [ msgArea, msgHash, shareButton, teacherLogin, msgsTable model.messages <| always [] ]
     ]

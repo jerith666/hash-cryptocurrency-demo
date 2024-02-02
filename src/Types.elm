@@ -49,6 +49,7 @@ type FrontendMsg
     | SetPassword String
     | Login
     | WaitForTeacher
+    | ReLogin
     | UpdateMessage String
     | UpdatePrefixLenFe String
     | ShareMessageFe
