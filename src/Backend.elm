@@ -109,12 +109,19 @@ updateFromFrontend sessionId clientId msg model =
                 )
 
         ShareMessage message ->
-            withTeacher
-                (\t ->
-                    ( { model | shareRequests = model.shareRequests ++ [ message ] }
-                    , sendToFrontend t <| ShareMessageRequest message
-                    )
-                )
+            case model.teacher of
+                Nothing ->
+                    unexpected msg model
+
+                Just t ->
+                    case t == sessionId of
+                        True ->
+                            ( { model | shareRequests = model.shareRequests ++ [ message ] }
+                            , sendToFrontend t <| ShareMessageRequest message
+                            )
+
+                        False ->
+                            unexpected msg model
 
         PermitMessage message ->
             ifTeacher
