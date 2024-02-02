@@ -74,3 +74,4 @@ type ToFrontend
     | TeacherArrived { hashPrefixLen : Int, messages : List String }
     | PrefixLenUpdated Int
     | ShareMessageRequest String
+    | MessageShared String

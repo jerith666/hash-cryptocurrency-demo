@@ -178,6 +178,14 @@ updateFromBackend msg model =
                 LoggedIn m ->
                     ( LoggedIn { m | shareRequests = m.shareRequests ++ [ message ] }, Cmd.none )
 
+        MessageShared message ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( LoggedIn { m | messages = m.messages ++ [ message ] }, Cmd.none )
+
 
 hash : BinaryDigits -> Int -> String -> String
 hash binaryDigits prefixLen message =

@@ -122,7 +122,7 @@ updateFromFrontend sessionId clientId msg model =
                     | shareRequests = model.shareRequests |> List.filter ((/=) message)
                     , messages = model.messages ++ [ message ]
                   }
-                , Cmd.none
+                , broadcast <| MessageShared message
                 )
 
         DenyMessage message ->
