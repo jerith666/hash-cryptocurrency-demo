@@ -98,7 +98,9 @@ update msg model =
                     unexpected msg model
 
                 LoggedIn m ->
-                    ({model | )
+                    ( LoggedIn { m | shareRequests = m.shareRequests |> List.filter ((/=) message) }
+                    , sendToBackend <| PermitMessage message
+                    )
 
         DenyMessageFe message ->
             case model of
@@ -106,7 +108,9 @@ update msg model =
                     unexpected msg model
 
                 LoggedIn m ->
-                    unexpected msg model
+                    ( LoggedIn { m | shareRequests = m.shareRequests |> List.filter ((/=) message) }
+                    , sendToBackend <| DenyMessage message
+                    )
 
         NoOpFrontendMsg ->
             ( model, Cmd.none )
@@ -119,20 +123,20 @@ unexpected _ model =
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
     let
-        initModel role =
+        initModel beModel shareRequests role =
             { message = ""
-            , hashPrefixLen = 1
+            , hashPrefixLen = beModel.hashPrefixLen
             , binaryDigits = Three
-            , messages = []
-            , shareRequests = []
+            , messages = beModel.messages
+            , shareRequests = shareRequests
             , role = role
             }
     in
     case msg of
-        TeacherLoginOk ->
+        TeacherLoginOk beModel ->
             case model of
                 AnonFrontend _ _ ->
-                    ( LoggedIn <| initModel Teacher, Cmd.none )
+                    ( LoggedIn <| initModel beModel beModel.shareRequests Teacher, Cmd.none )
 
                 LoggedIn _ ->
                     unexpected msg model
@@ -145,7 +149,7 @@ updateFromBackend msg model =
                 LoggedIn _ ->
                     unexpected msg model
 
-        TeacherArrived ->
+        TeacherArrived beModel ->
             case model of
                 AnonFrontend _ state ->
                     case state of
@@ -153,7 +157,7 @@ updateFromBackend msg model =
                             unexpected msg model
 
                         _ ->
-                            ( LoggedIn <| initModel Student, Cmd.none )
+                            ( LoggedIn <| initModel beModel [] Student, Cmd.none )
 
                 LoggedIn _ ->
                     unexpected msg model

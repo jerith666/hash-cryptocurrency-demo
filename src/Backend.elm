@@ -2,6 +2,7 @@ module Backend exposing (app)
 
 import Env
 import Lamdera exposing (ClientId, SessionId, broadcast, onConnect, sendToFrontend)
+import Task
 import Types exposing (..)
 
 
@@ -23,6 +24,7 @@ init =
     ( { teacher = Nothing
       , hashPrefixLen = 1
       , messages = []
+      , shareRequests = []
       }
     , Cmd.none
     )
@@ -36,10 +38,23 @@ update msg model =
                 Just t ->
                     case t == sessionId of
                         True ->
-                            ( model, sendToFrontend clientId TeacherLoginOk )
+                            ( model
+                            , sendToFrontend clientId <|
+                                TeacherLoginOk
+                                    { hashPrefixLen = model.hashPrefixLen
+                                    , messages = model.messages
+                                    , shareRequests = model.shareRequests
+                                    }
+                            )
 
                         False ->
-                            ( model, sendToFrontend clientId TeacherArrived )
+                            ( model
+                            , sendToFrontend clientId <|
+                                TeacherArrived
+                                    { hashPrefixLen = model.hashPrefixLen
+                                    , messages = model.messages
+                                    }
+                            )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -47,21 +62,8 @@ update msg model =
 
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
-    case msg of
-        TeacherLogin password ->
-            case password == Env.teacherPassword of
-                True ->
-                    ( { model | teacher = Just sessionId }
-                    , Cmd.batch
-                        [ sendToFrontend clientId TeacherLoginOk
-                        , broadcast TeacherArrived
-                        ]
-                    )
-
-                False ->
-                    ( model, sendToFrontend clientId TeacherLoginBad )
-
-        UpdatePrefixLenBe newLen ->
+    let
+        withTeacher modelCmd =
             case model.teacher of
                 Nothing ->
                     unexpected msg model
@@ -69,20 +71,63 @@ updateFromFrontend sessionId clientId msg model =
                 Just t ->
                     case t == sessionId of
                         True ->
-                            ( { model | hashPrefixLen = newLen }
-                            , broadcast <| PrefixLenUpdated newLen
-                            )
+                            modelCmd t
 
                         False ->
                             unexpected msg model
 
-        ShareMessage message ->
-            case model.teacher of
-                Nothing ->
-                    unexpected msg model
+        ifTeacher modelCmd =
+            withTeacher (\_ -> modelCmd)
+    in
+    case msg of
+        TeacherLogin password ->
+            case password == Env.teacherPassword of
+                True ->
+                    ( { model | teacher = Just sessionId }
+                    , Cmd.batch
+                        [ sendToFrontend clientId <|
+                            TeacherLoginOk
+                                { hashPrefixLen = model.hashPrefixLen
+                                , messages = model.messages
+                                , shareRequests = model.shareRequests
+                                }
+                        , broadcast <|
+                            TeacherArrived
+                                { hashPrefixLen = model.hashPrefixLen
+                                , messages = model.messages
+                                }
+                        ]
+                    )
 
-                Just t ->
-                    ( model, sendToFrontend t <| ShareMessageRequest message )
+                False ->
+                    ( model, sendToFrontend clientId TeacherLoginBad )
+
+        UpdatePrefixLenBe newLen ->
+            ifTeacher
+                ( { model | hashPrefixLen = newLen }
+                , broadcast <| PrefixLenUpdated newLen
+                )
+
+        ShareMessage message ->
+            withTeacher
+                (\t ->
+                    ( { model | shareRequests = model.shareRequests ++ [ message ] }
+                    , sendToFrontend t <| ShareMessageRequest message
+                    )
+                )
+
+        PermitMessage message ->
+            ifTeacher
+                ( { model
+                    | shareRequests = model.shareRequests |> List.filter ((/=) message)
+                    , messages = model.messages ++ [ message ]
+                  }
+                , Cmd.none
+                )
+
+        DenyMessage message ->
+            ifTeacher
+                ( { model | shareRequests = model.shareRequests |> List.filter ((/=) message) }, Cmd.none )
 
 
 unexpected msg model =

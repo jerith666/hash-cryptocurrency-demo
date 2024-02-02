@@ -40,6 +40,7 @@ type alias BackendModel =
     { teacher : Maybe SessionId
     , hashPrefixLen : Int
     , messages : List String
+    , shareRequests : List String
     }
 
 
@@ -59,6 +60,8 @@ type ToBackend
     = TeacherLogin String
     | UpdatePrefixLenBe Int
     | ShareMessage String
+    | PermitMessage String
+    | DenyMessage String
 
 
 type BackendMsg
@@ -66,8 +69,8 @@ type BackendMsg
 
 
 type ToFrontend
-    = TeacherLoginOk
+    = TeacherLoginOk { hashPrefixLen : Int, messages : List String, shareRequests : List String }
     | TeacherLoginBad
-    | TeacherArrived
+    | TeacherArrived { hashPrefixLen : Int, messages : List String }
     | PrefixLenUpdated Int
     | ShareMessageRequest String
