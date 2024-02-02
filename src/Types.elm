@@ -51,6 +51,8 @@ type FrontendMsg
     | UpdateMessage String
     | UpdatePrefixLenFe String
     | ShareMessageFe
+    | PermitMessageFe String
+    | DenyMessageFe String
 
 
 type ToBackend

@@ -92,6 +92,22 @@ update msg model =
                 LoggedIn m ->
                     ( model, sendToBackend <| ShareMessage m.message )
 
+        PermitMessageFe message ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ({model | )
+
+        DenyMessageFe message ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    unexpected msg model
+
         NoOpFrontendMsg ->
             ( model, Cmd.none )
 
@@ -244,23 +260,29 @@ viewFe model =
         shareButton =
             Html.button [ Html.Events.onClick ShareMessageFe ] [ Html.text "Share Message" ]
 
-        msgsTable messages =
+        shareDecision message =
+            [ Html.td [] [ Html.button [ Html.Events.onClick <| PermitMessageFe message ] [ Html.text "permit" ] ]
+            , Html.td [] [ Html.button [ Html.Events.onClick <| DenyMessageFe message ] [ Html.text "deny" ] ]
+            ]
+
+        msgsTable messages shareMaker =
             Html.table [] <|
                 [ Html.tr [] <| List.map (\t -> Html.td [] [ Html.text t ]) [ "message", "hash" ] ]
                     ++ List.map
                         (\m ->
-                            Html.tr []
+                            Html.tr [] <|
                                 [ Html.td [] [ Html.text m ]
                                 , Html.td [ Attr.style "font-family" "monospace" ] [ Html.text <| hashFn m ]
                                 ]
+                                    ++ shareMaker m
                         )
                         messages
     in
     [ Html.div [] <|
         case model.role of
             Teacher ->
-                [ msgArea, prefixSpinner, msgHash, shareButton, msgsTable model.messages, msgsTable model.shareRequests ]
+                [ msgArea, prefixSpinner, msgHash, shareButton, msgsTable model.messages <| always [], msgsTable model.shareRequests shareDecision ]
 
             Student ->
-                [ msgArea, msgHash, shareButton, msgsTable model.messages ]
+                [ msgArea, msgHash, shareButton, msgsTable model.messages <| always [] ]
     ]
