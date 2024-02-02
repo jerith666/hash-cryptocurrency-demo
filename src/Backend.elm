@@ -69,15 +69,18 @@ updateFromFrontend sessionId clientId msg model =
                     unexpected msg model
 
                 Just t ->
+                    modelCmd t
+
+        ifTeacher modelCmd =
+            withTeacher
+                (\t ->
                     case t == sessionId of
                         True ->
-                            modelCmd t
+                            modelCmd
 
                         False ->
                             unexpected msg model
-
-        ifTeacher modelCmd =
-            withTeacher (\_ -> modelCmd)
+                )
     in
     case msg of
         TeacherLogin password ->
@@ -109,19 +112,12 @@ updateFromFrontend sessionId clientId msg model =
                 )
 
         ShareMessage message ->
-            case model.teacher of
-                Nothing ->
-                    unexpected msg model
-
-                Just t ->
-                    case t == sessionId of
-                        True ->
-                            ( { model | shareRequests = model.shareRequests ++ [ message ] }
-                            , sendToFrontend t <| ShareMessageRequest message
-                            )
-
-                        False ->
-                            unexpected msg model
+            withTeacher
+                (\t ->
+                    ( { model | shareRequests = model.shareRequests ++ [ message ] }
+                    , sendToFrontend t <| ShareMessageRequest message
+                    )
+                )
 
         PermitMessage message ->
             ifTeacher
