@@ -132,6 +132,10 @@ updateFromFrontend sessionId clientId msg model =
             ifTeacher
                 ( { model | shareRequests = model.shareRequests |> List.filter ((/=) message) }, Cmd.none )
 
+        ClearMessages ->
+            ifTeacher
+                ( { model | messages = [] }, broadcast MessagesCleared )
+
 
 unexpected msg model =
     ( model, Cmd.none )

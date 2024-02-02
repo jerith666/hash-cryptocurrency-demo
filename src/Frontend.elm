@@ -115,6 +115,14 @@ update msg model =
                     , sendToBackend <| DenyMessage message
                     )
 
+        ClearMessagesFe ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn _ ->
+                    ( model, sendToBackend ClearMessages )
+
         NoOpFrontendMsg ->
             ( model, Cmd.none )
 
@@ -195,6 +203,14 @@ updateFromBackend msg model =
 
                 LoggedIn m ->
                     ( LoggedIn { m | messages = m.messages ++ [ message ] }, Cmd.none )
+
+        MessagesCleared ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( LoggedIn { m | messages = [] }, Cmd.none )
 
 
 hash : BinaryDigits -> Int -> String -> String
@@ -300,13 +316,16 @@ viewFe model =
                         )
                         messages
 
+        clearMessages =
+            Html.button [ Html.Events.onClick ClearMessagesFe ] [ Html.text "clear messages" ]
+
         teacherLogin =
             Html.button [ Html.Events.onClick ReLogin ] [ Html.text "T" ]
     in
     [ Html.div [] <|
         case model.role of
             Teacher ->
-                [ msgArea, prefixSpinner, msgHash, shareButton, msgsTable model.messages <| always [], msgsTable model.shareRequests shareDecision ]
+                [ msgArea, prefixSpinner, msgHash, shareButton, msgsTable model.messages <| always [], clearMessages, msgsTable model.shareRequests shareDecision ]
 
             Student ->
                 [ msgArea, msgHash, shareButton, teacherLogin, msgsTable model.messages <| always [] ]

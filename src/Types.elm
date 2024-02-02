@@ -55,6 +55,7 @@ type FrontendMsg
     | ShareMessageFe
     | PermitMessageFe String
     | DenyMessageFe String
+    | ClearMessagesFe
 
 
 type ToBackend
@@ -63,6 +64,7 @@ type ToBackend
     | ShareMessage String
     | PermitMessage String
     | DenyMessage String
+    | ClearMessages
 
 
 type BackendMsg
@@ -76,3 +78,4 @@ type ToFrontend
     | PrefixLenUpdated Int
     | ShareMessageRequest String
     | MessageShared String
+    | MessagesCleared
