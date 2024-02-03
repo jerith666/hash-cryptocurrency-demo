@@ -162,28 +162,10 @@ autohash model =
 
                 False ->
                     ( LoggedIn { model | autoHashSuffix = model.autoHashSuffix ++ "x" }
-                    , autoHashAgain
+                    , Process.sleep 1
+                        |> Task.andThen (\_ -> Task.succeed AutoHash)
+                        |> Task.perform identity
                     )
-
-
-sleep : Task Never ()
-sleep =
-    Process.sleep 10
-
-
-autoHashOnce : Task Never FrontendMsg
-autoHashOnce =
-    Task.succeed AutoHash
-
-
-sleepThenAuto : Task Never FrontendMsg
-sleepThenAuto =
-    sleep |> Task.andThen (\_ -> autoHashOnce)
-
-
-autoHashAgain : Cmd FrontendMsg
-autoHashAgain =
-    Task.perform identity sleepThenAuto
 
 
 unexpected _ model =
