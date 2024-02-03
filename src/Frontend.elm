@@ -7,8 +7,10 @@ import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events
 import Lamdera exposing (sendToBackend)
+import Process
 import SHA
 import String exposing (fromInt)
+import Task exposing (Task)
 import Types exposing (..)
 import Url
 
@@ -126,8 +128,62 @@ update msg model =
         EnableAutoHashFe ->
             ( model, sendToBackend EnableAutoHash )
 
+        AutoHash ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    autohash m
+
         NoOpFrontendMsg ->
             ( model, Cmd.none )
+
+
+autohash : FeModel -> ( Model, Cmd FrontendMsg )
+autohash model =
+    case model.autoHashing of
+        Disabled ->
+            ( LoggedIn model, Cmd.none )
+
+        Enabled autoHashLen ->
+            let
+                hashed =
+                    hash model.binaryDigits model.hashPrefixLen <| model.message ++ model.autoHashSuffix
+
+                prefixOk =
+                    String.startsWith (String.repeat autoHashLen "0") hashed
+            in
+            case prefixOk of
+                True ->
+                    ( LoggedIn { model | message = model.message ++ model.autoHashSuffix, autoHashSuffix = "" }
+                    , Cmd.none
+                    )
+
+                False ->
+                    ( LoggedIn { model | autoHashSuffix = model.autoHashSuffix ++ "x" }
+                    , autoHashAgain
+                    )
+
+
+sleep : Task Never ()
+sleep =
+    Process.sleep 10
+
+
+autoHashOnce : Task Never FrontendMsg
+autoHashOnce =
+    Task.succeed AutoHash
+
+
+sleepThenAuto : Task Never FrontendMsg
+sleepThenAuto =
+    sleep |> Task.andThen (\_ -> autoHashOnce)
+
+
+autoHashAgain : Cmd FrontendMsg
+autoHashAgain =
+    Task.perform identity sleepThenAuto
 
 
 unexpected _ model =
@@ -139,6 +195,7 @@ updateFromBackend msg model =
     let
         initModel beModel shareRequests role =
             { message = ""
+            , autoHashSuffix = ""
             , hashPrefixLen = beModel.hashPrefixLen
             , binaryDigits = Three
             , messages = beModel.messages
@@ -285,7 +342,7 @@ viewFe model =
 
         msgArea =
             Html.textarea
-                [ Attr.value model.message
+                [ Attr.value <| model.message ++ model.autoHashSuffix
                 , Attr.rows 8
                 , Attr.cols 80
                 , Html.Events.onInput UpdateMessage
@@ -305,7 +362,7 @@ viewFe model =
         msgHash =
             Html.div
                 [ Attr.style "font-family" "monospace" ]
-                [ Html.text <| hashFn model.message ]
+                [ Html.text <| hashFn <| model.message ++ model.autoHashSuffix ]
 
         shareButton =
             Html.button [ Html.Events.onClick ShareMessageFe ] [ Html.text "Share Message" ]
@@ -330,7 +387,7 @@ viewFe model =
                             , Attr.value <| fromInt autoDigits
                             ]
                             []
-                        , Html.button [] [ Html.text "Auto-Hash" ]
+                        , Html.button [ Html.Events.onClick AutoHash ] [ Html.text "Auto-Hash" ]
                         ]
 
         shareDecision message =
