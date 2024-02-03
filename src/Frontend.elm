@@ -163,11 +163,9 @@ autohash model =
 
                 False ->
                     ( LoggedIn { model | autoHashSuffix = updateSuffix model.autoHashSuffix }
-                    , {- Process.sleep 1
-                         |> Task.andThen (\_ -> Task.succeed AutoHash)
-                         |> Task.perform identity
-                      -}
-                      Cmd.none
+                    , Process.sleep 1
+                        |> Task.andThen (\_ -> Task.succeed AutoHash)
+                        |> Task.perform identity
                     )
 
 
@@ -183,7 +181,12 @@ msgWithHashSuffix m =
 
 updateSuffix : Maybe Int -> Maybe Int
 updateSuffix suffix =
-    Maybe.map ((+) 1) suffix
+    case suffix of
+        Nothing ->
+            Just 1
+
+        Just s ->
+            Just <| s + 1
 
 
 unexpected _ model =
