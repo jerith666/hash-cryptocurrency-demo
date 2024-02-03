@@ -25,6 +25,7 @@ init =
       , hashPrefixLen = 1
       , messages = []
       , shareRequests = []
+      , autoHashing = Disabled
       }
     , Cmd.none
     )
@@ -44,6 +45,7 @@ update msg model =
                                     { hashPrefixLen = model.hashPrefixLen
                                     , messages = model.messages
                                     , shareRequests = model.shareRequests
+                                    , autoHashing = model.autoHashing
                                     }
                             )
 
@@ -53,6 +55,7 @@ update msg model =
                                 TeacherArrived
                                     { hashPrefixLen = model.hashPrefixLen
                                     , messages = model.messages
+                                    , autoHashing = model.autoHashing
                                     }
                             )
 
@@ -93,11 +96,13 @@ updateFromFrontend sessionId clientId msg model =
                                 { hashPrefixLen = model.hashPrefixLen
                                 , messages = model.messages
                                 , shareRequests = model.shareRequests
+                                , autoHashing = model.autoHashing
                                 }
                         , broadcast <|
                             TeacherArrived
                                 { hashPrefixLen = model.hashPrefixLen
                                 , messages = model.messages
+                                , autoHashing = model.autoHashing
                                 }
                         ]
                     )
@@ -135,6 +140,12 @@ updateFromFrontend sessionId clientId msg model =
         ClearMessages ->
             ifTeacher
                 ( { model | messages = [] }, broadcast MessagesCleared )
+
+        EnableAutoHash ->
+            ifTeacher
+                ( { model | autoHashing = Enabled 2 }
+                , broadcast <| AutoHashEnabled 2
+                )
 
 
 unexpected msg model =

@@ -14,6 +14,11 @@ type ClientRole
     | Teacher
 
 
+type AutoHashing
+    = Enabled Int
+    | Disabled
+
+
 type AnonState
     = LoginUnattempted
     | LoginInProgress
@@ -32,6 +37,7 @@ type alias FeModel =
     , binaryDigits : BinaryDigits
     , messages : List String
     , shareRequests : List String
+    , autoHashing : AutoHashing
     , role : ClientRole
     }
 
@@ -41,6 +47,7 @@ type alias BackendModel =
     , hashPrefixLen : Int
     , messages : List String
     , shareRequests : List String
+    , autoHashing : AutoHashing
     }
 
 
@@ -56,6 +63,7 @@ type FrontendMsg
     | PermitMessageFe String
     | DenyMessageFe String
     | ClearMessagesFe
+    | EnableAutoHashFe
 
 
 type ToBackend
@@ -65,6 +73,7 @@ type ToBackend
     | PermitMessage String
     | DenyMessage String
     | ClearMessages
+    | EnableAutoHash
 
 
 type BackendMsg
@@ -72,10 +81,20 @@ type BackendMsg
 
 
 type ToFrontend
-    = TeacherLoginOk { hashPrefixLen : Int, messages : List String, shareRequests : List String }
+    = TeacherLoginOk
+        { hashPrefixLen : Int
+        , messages : List String
+        , shareRequests : List String
+        , autoHashing : AutoHashing
+        }
     | TeacherLoginBad
-    | TeacherArrived { hashPrefixLen : Int, messages : List String }
+    | TeacherArrived
+        { hashPrefixLen : Int
+        , messages : List String
+        , autoHashing : AutoHashing
+        }
     | PrefixLenUpdated Int
     | ShareMessageRequest String
     | MessageShared String
     | MessagesCleared
+    | AutoHashEnabled Int

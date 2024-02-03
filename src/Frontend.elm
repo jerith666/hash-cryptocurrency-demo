@@ -123,6 +123,9 @@ update msg model =
                 LoggedIn _ ->
                     ( model, sendToBackend ClearMessages )
 
+        EnableAutoHashFe ->
+            ( model, sendToBackend EnableAutoHash )
+
         NoOpFrontendMsg ->
             ( model, Cmd.none )
 
@@ -140,6 +143,7 @@ updateFromBackend msg model =
             , binaryDigits = Three
             , messages = beModel.messages
             , shareRequests = shareRequests
+            , autoHashing = Disabled
             , role = role
             }
     in
@@ -211,6 +215,14 @@ updateFromBackend msg model =
 
                 LoggedIn m ->
                     ( LoggedIn { m | messages = [] }, Cmd.none )
+
+        AutoHashEnabled autoHash ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( LoggedIn { m | autoHashing = Enabled autoHash }, Cmd.none )
 
 
 hash : BinaryDigits -> Int -> String -> String
@@ -298,6 +310,29 @@ viewFe model =
         shareButton =
             Html.button [ Html.Events.onClick ShareMessageFe ] [ Html.text "Share Message" ]
 
+        autoHash =
+            case model.autoHashing of
+                Disabled ->
+                    case model.role of
+                        Teacher ->
+                            Html.button [ Html.Events.onClick EnableAutoHashFe ]
+                                [ Html.text "Enable Auto-Hashing" ]
+
+                        Student ->
+                            Html.span [ Attr.style "display" "none" ] []
+
+                Enabled autoDigits ->
+                    Html.div []
+                        [ Html.input
+                            [ Attr.type_ "number"
+                            , Attr.min "1"
+                            , Attr.max "10"
+                            , Attr.value <| fromInt autoDigits
+                            ]
+                            []
+                        , Html.button [] [ Html.text "Auto-Hash" ]
+                        ]
+
         shareDecision message =
             [ Html.td [] [ Html.button [ Html.Events.onClick <| PermitMessageFe message ] [ Html.text "permit" ] ]
             , Html.td [] [ Html.button [ Html.Events.onClick <| DenyMessageFe message ] [ Html.text "deny" ] ]
@@ -325,8 +360,22 @@ viewFe model =
     [ Html.div [] <|
         case model.role of
             Teacher ->
-                [ msgArea, prefixSpinner, msgHash, shareButton, msgsTable model.messages <| always [], clearMessages, msgsTable model.shareRequests shareDecision ]
+                [ msgArea
+                , prefixSpinner
+                , msgHash
+                , autoHash
+                , shareButton
+                , msgsTable model.messages <| always []
+                , clearMessages
+                , msgsTable model.shareRequests shareDecision
+                ]
 
             Student ->
-                [ msgArea, msgHash, shareButton, teacherLogin, msgsTable model.messages <| always [] ]
+                [ msgArea
+                , msgHash
+                , autoHash
+                , shareButton
+                , teacherLogin
+                , msgsTable model.messages <| always []
+                ]
     ]
