@@ -454,17 +454,22 @@ viewFe model =
             [ Html.button [ Html.Events.onClick <| DeleteMessageFe message ] [ Html.text "delete" ] ]
 
         msgsTable messages shareMaker =
-            Html.table [] <|
-                [ Html.tr [] <| List.map (\t -> Html.td [] [ Html.text t ]) [ "message", "hash" ] ]
-                    ++ List.map
-                        (\m ->
-                            Html.tr [ Attr.style "font-family" "monospace" ] <|
-                                [ Html.td [ Attr.style "white-space" "pre" ] [ Html.text m ]
-                                , Html.td [] [ Html.text <| hashFn m ]
-                                ]
-                                    ++ shareMaker m
-                        )
-                        messages
+            case messages of
+                [] ->
+                    Html.span [ Attr.style "display" "none" ] []
+
+                _ ->
+                    Html.table [] <|
+                        [ Html.tr [] <| List.map (\t -> Html.td [] [ Html.text t ]) [ "message", "hash" ] ]
+                            ++ List.map
+                                (\m ->
+                                    Html.tr [ Attr.style "font-family" "monospace" ] <|
+                                        [ Html.td [ Attr.style "white-space" "pre" ] [ Html.text m ]
+                                        , Html.td [] [ Html.text <| hashFn m ]
+                                        ]
+                                            ++ shareMaker m
+                                )
+                                messages
 
         clearMessages =
             Html.button [ Html.Events.onClick ClearMessagesFe ] [ Html.text "clear messages" ]
