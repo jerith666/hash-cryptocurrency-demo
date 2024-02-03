@@ -410,7 +410,7 @@ viewFe model =
                 [ Html.text <| hashFn <| msgWithHashSuffix model ]
 
         shareButton =
-            Html.button [ Html.Events.onClick ShareMessageFe ] [ Html.text "Share Message" ]
+            Html.button [ Html.Events.onClick ShareMessageFe ] [ Html.text "→ Share" ]
 
         autoHash =
             case model.autoHashing of
@@ -492,10 +492,10 @@ viewFe model =
 
             Student ->
                 [ msgArea
+                , shareButton
                 , msgHash
                 , autoHash
-                , shareButton
-                , teacherLogin
                 , msgsTable model.messages <| always []
+                , teacherLogin
                 ]
     ]
