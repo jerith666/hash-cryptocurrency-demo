@@ -118,6 +118,16 @@ update msg model =
                     , sendToBackend <| DenyMessage message
                     )
 
+        DeleteMessageFe message ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( LoggedIn { m | messages = m.messages |> List.filter ((/=) message) }
+                    , sendToBackend <| DeleteMessage message
+                    )
+
         ClearMessagesFe ->
             case model of
                 AnonFrontend _ _ ->
@@ -281,6 +291,14 @@ updateFromBackend msg model =
                 LoggedIn m ->
                     ( LoggedIn { m | messages = m.messages ++ [ message ] }, Cmd.none )
 
+        MessageDeleted message ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( LoggedIn { m | messages = m.messages |> List.filter ((/=) message) }, Cmd.none )
+
         MessagesCleared ->
             case model of
                 AnonFrontend _ _ ->
@@ -412,6 +430,9 @@ viewFe model =
             , Html.td [] [ Html.button [ Html.Events.onClick <| DenyMessageFe message ] [ Html.text "deny" ] ]
             ]
 
+        deleteButton message =
+            [ Html.button [ Html.Events.onClick <| DeleteMessageFe message ] [ Html.text "delete" ] ]
+
         msgsTable messages shareMaker =
             Html.table [] <|
                 [ Html.tr [] <| List.map (\t -> Html.td [] [ Html.text t ]) [ "message", "hash" ] ]
@@ -439,7 +460,7 @@ viewFe model =
                 , msgHash
                 , autoHash
                 , shareButton
-                , msgsTable model.messages <| always []
+                , msgsTable model.messages deleteButton
                 , clearMessages
                 , msgsTable model.shareRequests shareDecision
                 ]

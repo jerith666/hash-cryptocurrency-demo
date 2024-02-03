@@ -63,6 +63,7 @@ type FrontendMsg
     | ShareMessageFe
     | PermitMessageFe String
     | DenyMessageFe String
+    | DeleteMessageFe String
     | ClearMessagesFe
     | EnableAutoHashFe
     | UpdateAutoHashPrefixLen String
@@ -75,6 +76,7 @@ type ToBackend
     | ShareMessage String
     | PermitMessage String
     | DenyMessage String
+    | DeleteMessage String
     | ClearMessages
     | EnableAutoHash
 
@@ -99,5 +101,6 @@ type ToFrontend
     | PrefixLenUpdated Int
     | ShareMessageRequest String
     | MessageShared String
+    | MessageDeleted String
     | MessagesCleared
     | AutoHashEnabled Int

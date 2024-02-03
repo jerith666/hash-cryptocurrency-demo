@@ -137,6 +137,12 @@ updateFromFrontend sessionId clientId msg model =
             ifTeacher
                 ( { model | shareRequests = model.shareRequests |> List.filter ((/=) message) }, Cmd.none )
 
+        DeleteMessage message ->
+            ifTeacher
+                ( { model | messages = model.messages |> List.filter ((/=) message) }
+                , broadcast <| MessageDeleted message
+                )
+
         ClearMessages ->
             ifTeacher
                 ( { model | messages = [] }, broadcast MessagesCleared )
