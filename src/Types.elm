@@ -65,6 +65,7 @@ type FrontendMsg
     | DenyMessageFe String
     | ClearMessagesFe
     | EnableAutoHashFe
+    | UpdateAutoHashPrefixLen String
     | AutoHash
 
 

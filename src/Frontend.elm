@@ -129,6 +129,19 @@ update msg model =
         EnableAutoHashFe ->
             ( model, sendToBackend EnableAutoHash )
 
+        UpdateAutoHashPrefixLen lenStr ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    case String.toInt lenStr of
+                        Nothing ->
+                            unexpected msg model
+
+                        Just len ->
+                            ( LoggedIn { m | autoHashing = Enabled len }, Cmd.none )
+
         AutoHash ->
             case model of
                 AnonFrontend _ _ ->
@@ -388,6 +401,7 @@ viewFe model =
                             , Attr.min "1"
                             , Attr.max "10"
                             , Attr.value <| fromInt autoDigits
+                            , Html.Events.onInput UpdateAutoHashPrefixLen
                             ]
                             []
                         , Html.button [ Html.Events.onClick AutoHash ] [ Html.text "Auto-Hash" ]
