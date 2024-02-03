@@ -33,7 +33,7 @@ type FrontendModel
 
 type alias FeModel =
     { message : String
-    , autoHashSuffix : String
+    , autoHashSuffix : Maybe Int
     , hashPrefixLen : Int
     , binaryDigits : BinaryDigits
     , messages : List String

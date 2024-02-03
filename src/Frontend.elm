@@ -3,6 +3,7 @@ module Frontend exposing (app)
 import Binary
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
+import Digits exposing (encodeBaseSixtyTwo)
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events
@@ -149,23 +150,40 @@ autohash model =
         Enabled autoHashLen ->
             let
                 hashed =
-                    hash model.binaryDigits model.hashPrefixLen <| model.message ++ model.autoHashSuffix
+                    hash model.binaryDigits model.hashPrefixLen <| msgWithHashSuffix model
 
                 prefixOk =
                     String.startsWith (String.repeat autoHashLen "0") hashed
             in
             case prefixOk of
                 True ->
-                    ( LoggedIn { model | message = model.message ++ model.autoHashSuffix, autoHashSuffix = "" }
+                    ( LoggedIn { model | message = msgWithHashSuffix model, autoHashSuffix = Nothing }
                     , Cmd.none
                     )
 
                 False ->
-                    ( LoggedIn { model | autoHashSuffix = model.autoHashSuffix ++ "x" }
-                    , Process.sleep 1
-                        |> Task.andThen (\_ -> Task.succeed AutoHash)
-                        |> Task.perform identity
+                    ( LoggedIn { model | autoHashSuffix = updateSuffix model.autoHashSuffix }
+                    , {- Process.sleep 1
+                         |> Task.andThen (\_ -> Task.succeed AutoHash)
+                         |> Task.perform identity
+                      -}
+                      Cmd.none
                     )
+
+
+msgWithHashSuffix : FeModel -> String
+msgWithHashSuffix m =
+    case m.autoHashSuffix of
+        Nothing ->
+            m.message
+
+        Just s ->
+            m.message ++ encodeBaseSixtyTwo s
+
+
+updateSuffix : Maybe Int -> Maybe Int
+updateSuffix suffix =
+    Maybe.map ((+) 1) suffix
 
 
 unexpected _ model =
@@ -177,7 +195,7 @@ updateFromBackend msg model =
     let
         initModel beModel shareRequests role =
             { message = ""
-            , autoHashSuffix = ""
+            , autoHashSuffix = Nothing
             , hashPrefixLen = beModel.hashPrefixLen
             , binaryDigits = Three
             , messages = beModel.messages
@@ -324,7 +342,7 @@ viewFe model =
 
         msgArea =
             Html.textarea
-                [ Attr.value <| model.message ++ model.autoHashSuffix
+                [ Attr.value <| msgWithHashSuffix model
                 , Attr.rows 8
                 , Attr.cols 80
                 , Html.Events.onInput UpdateMessage
@@ -344,7 +362,7 @@ viewFe model =
         msgHash =
             Html.div
                 [ Attr.style "font-family" "monospace" ]
-                [ Html.text <| hashFn <| model.message ++ model.autoHashSuffix ]
+                [ Html.text <| hashFn <| msgWithHashSuffix model ]
 
         shareButton =
             Html.button [ Html.Events.onClick ShareMessageFe ] [ Html.text "Share Message" ]
