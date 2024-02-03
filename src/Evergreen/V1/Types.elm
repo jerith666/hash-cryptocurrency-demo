@@ -16,6 +16,11 @@ type BinaryDigits
     | Three
 
 
+type AutoHashing
+    = Enabled Int
+    | Disabled
+
+
 type ClientRole
     = Student
     | Teacher
@@ -23,10 +28,12 @@ type ClientRole
 
 type alias FeModel =
     { message : String
+    , autoHashSuffix : Maybe Int
     , hashPrefixLen : Int
     , binaryDigits : BinaryDigits
     , messages : List String
     , shareRequests : List String
+    , autoHashing : AutoHashing
     , role : ClientRole
     }
 
@@ -41,6 +48,7 @@ type alias BackendModel =
     , hashPrefixLen : Int
     , messages : List String
     , shareRequests : List String
+    , autoHashing : AutoHashing
     }
 
 
@@ -49,11 +57,18 @@ type FrontendMsg
     | SetPassword String
     | Login
     | WaitForTeacher
+    | ReLogin
     | UpdateMessage String
     | UpdatePrefixLenFe String
     | ShareMessageFe
     | PermitMessageFe String
     | DenyMessageFe String
+    | DeleteMessageFe String
+    | ClearMessagesFe
+    | EnableAutoHashFe
+    | DisableAutoHashFe
+    | UpdateAutoHashPrefixLen String
+    | AutoHash
 
 
 type ToBackend
@@ -62,6 +77,10 @@ type ToBackend
     | ShareMessage String
     | PermitMessage String
     | DenyMessage String
+    | DeleteMessage String
+    | ClearMessages
+    | EnableAutoHash
+    | DisableAutoHash
 
 
 type BackendMsg
@@ -73,12 +92,18 @@ type ToFrontend
         { hashPrefixLen : Int
         , messages : List String
         , shareRequests : List String
+        , autoHashing : AutoHashing
         }
     | TeacherLoginBad
     | TeacherArrived
         { hashPrefixLen : Int
         , messages : List String
+        , autoHashing : AutoHashing
         }
     | PrefixLenUpdated Int
     | ShareMessageRequest String
     | MessageShared String
+    | MessageDeleted String
+    | MessagesCleared
+    | AutoHashEnabled Int
+    | AutoHashDisabled
