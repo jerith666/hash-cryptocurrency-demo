@@ -274,7 +274,7 @@ viewFe model =
         msgArea =
             Html.textarea
                 [ Attr.value model.message
-                , Attr.rows 5
+                , Attr.rows 8
                 , Attr.cols 80
                 , Html.Events.onInput UpdateMessage
                 ]
@@ -284,7 +284,7 @@ viewFe model =
             Html.input
                 [ Attr.type_ "number"
                 , Attr.min "1"
-                , Attr.max "64"
+                , Attr.max "128"
                 , Attr.value <| fromInt model.hashPrefixLen
                 , Html.Events.onInput UpdatePrefixLenFe
                 ]
@@ -308,9 +308,9 @@ viewFe model =
                 [ Html.tr [] <| List.map (\t -> Html.td [] [ Html.text t ]) [ "message", "hash" ] ]
                     ++ List.map
                         (\m ->
-                            Html.tr [] <|
-                                [ Html.td [] [ Html.text m ]
-                                , Html.td [ Attr.style "font-family" "monospace" ] [ Html.text <| hashFn m ]
+                            Html.tr [ Attr.style "font-family" "monospace" ] <|
+                                [ Html.td [ Attr.style "white-space" "pre" ] [ Html.text m ]
+                                , Html.td [] [ Html.text <| hashFn m ]
                                 ]
                                     ++ shareMaker m
                         )
