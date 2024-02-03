@@ -153,6 +153,12 @@ updateFromFrontend sessionId clientId msg model =
                 , broadcast <| AutoHashEnabled 2
                 )
 
+        DisableAutoHash ->
+            ifTeacher
+                ( { model | autoHashing = Disabled }
+                , broadcast <| AutoHashDisabled
+                )
+
 
 unexpected msg model =
     ( model, Cmd.none )

@@ -139,6 +139,9 @@ update msg model =
         EnableAutoHashFe ->
             ( model, sendToBackend EnableAutoHash )
 
+        DisableAutoHashFe ->
+            ( model, sendToBackend DisableAutoHash )
+
         UpdateAutoHashPrefixLen lenStr ->
             case model of
                 AnonFrontend _ _ ->
@@ -315,6 +318,14 @@ updateFromBackend msg model =
                 LoggedIn m ->
                     ( LoggedIn { m | autoHashing = Enabled autoHash }, Cmd.none )
 
+        AutoHashDisabled ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( LoggedIn { m | autoHashing = Disabled }, Cmd.none )
+
 
 hash : BinaryDigits -> Int -> String -> String
 hash binaryDigits prefixLen message =
@@ -413,7 +424,7 @@ viewFe model =
                             Html.span [ Attr.style "display" "none" ] []
 
                 Enabled autoDigits ->
-                    Html.div []
+                    Html.div [] <|
                         [ Html.input
                             [ Attr.type_ "number"
                             , Attr.min "1"
@@ -424,6 +435,15 @@ viewFe model =
                             []
                         , Html.button [ Html.Events.onClick AutoHash ] [ Html.text "Auto-Hash" ]
                         ]
+                            ++ (case model.role of
+                                    Student ->
+                                        []
+
+                                    Teacher ->
+                                        [ Html.button [ Html.Events.onClick DisableAutoHashFe ]
+                                            [ Html.text "Disable Auto-Hash" ]
+                                        ]
+                               )
 
         shareDecision message =
             [ Html.td [] [ Html.button [ Html.Events.onClick <| PermitMessageFe message ] [ Html.text "permit" ] ]

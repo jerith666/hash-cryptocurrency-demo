@@ -66,6 +66,7 @@ type FrontendMsg
     | DeleteMessageFe String
     | ClearMessagesFe
     | EnableAutoHashFe
+    | DisableAutoHashFe
     | UpdateAutoHashPrefixLen String
     | AutoHash
 
@@ -79,6 +80,7 @@ type ToBackend
     | DeleteMessage String
     | ClearMessages
     | EnableAutoHash
+    | DisableAutoHash
 
 
 type BackendMsg
@@ -104,3 +106,4 @@ type ToFrontend
     | MessageDeleted String
     | MessagesCleared
     | AutoHashEnabled Int
+    | AutoHashDisabled
