@@ -413,11 +413,33 @@ viewFe model =
 
         teacherLogin =
             Html.button [ Html.Events.onClick ReLogin ] [ Html.text "T" ]
+
+        debug =
+            Html.div []
+                [ Html.text "message"
+                , Html.text <| model.message
+                , Html.br [] []
+                , Html.text "autoHashSuffix"
+                , Html.text <| Maybe.withDefault "nothing" <| Maybe.map String.fromInt model.autoHashSuffix
+                , Html.br [] []
+                , Html.text "hashPrefixLen"
+                , Html.text <| String.fromInt model.hashPrefixLen
+                , Html.br [] []
+                , Html.text "autoHashing"
+                , Html.text <|
+                    case model.autoHashing of
+                        Disabled ->
+                            "disabled"
+
+                        Enabled len ->
+                            "enabled " ++ String.fromInt len
+                ]
     in
     [ Html.div [] <|
         case model.role of
             Teacher ->
-                [ msgArea
+                [ debug
+                , msgArea
                 , prefixSpinner
                 , msgHash
                 , autoHash
@@ -428,7 +450,8 @@ viewFe model =
                 ]
 
             Student ->
-                [ msgArea
+                [ debug
+                , msgArea
                 , msgHash
                 , autoHash
                 , shareButton
