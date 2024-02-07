@@ -232,9 +232,9 @@ updateFromBackend msg model =
             , binaryDigits = Three
             , messages = beModel.messages
             , shareRequests = shareRequests
-            , autoHashing = Disabled
+            , autoHashing = beModel.autoHashing
             , role = role
-            , state = Active
+            , state = beModel.state
             }
     in
     case msg of
