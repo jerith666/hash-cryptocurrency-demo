@@ -69,6 +69,9 @@ update msg model =
         ReLogin ->
             ( AnonFrontend "" LoginUnattempted, Cmd.none )
 
+        ChangeStateFe state ->
+            ( model, sendToBackend <| ChangeState state )
+
         UpdateMessage newMsg ->
             case model of
                 AnonFrontend _ _ ->
@@ -231,6 +234,7 @@ updateFromBackend msg model =
             , shareRequests = shareRequests
             , autoHashing = Disabled
             , role = role
+            , state = Active
             }
     in
     case msg of
@@ -269,6 +273,14 @@ updateFromBackend msg model =
                             -- someone else has taken over the Teacher role;
                             -- downgrade ourselves to a Student
                             ( LoggedIn <| initModel beModel [] Student, Cmd.none )
+
+        StateChanged state ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( LoggedIn { m | state = state }, Cmd.none )
 
         PrefixLenUpdated newLen ->
             case model of
@@ -382,16 +394,31 @@ view model =
 viewFe : FeModel -> List (Html FrontendMsg)
 viewFe model =
     let
+        disabled =
+            case model.role of
+                Student ->
+                    case model.state of
+                        Active ->
+                            Attr.disabled False
+
+                        Paused ->
+                            Attr.disabled True
+
+                Teacher ->
+                    Attr.disabled False
+
         hashFn =
             hash model.binaryDigits model.hashPrefixLen
 
         msgArea =
             Html.textarea
-                [ Attr.value <| msgWithHashSuffix model
-                , Attr.rows 8
-                , Attr.cols 80
-                , Html.Events.onInput UpdateMessage
-                ]
+                (disabled
+                    :: [ Attr.value <| msgWithHashSuffix model
+                       , Attr.rows 8
+                       , Attr.cols 80
+                       , Html.Events.onInput UpdateMessage
+                       ]
+                )
                 []
 
         prefixSpinner =
@@ -410,7 +437,7 @@ viewFe model =
                 [ Html.text <| hashFn <| msgWithHashSuffix model ]
 
         shareButton =
-            Html.button [ Html.Events.onClick ShareMessageFe ] [ Html.text "→ Share" ]
+            Html.button (disabled :: [ Html.Events.onClick ShareMessageFe ]) [ Html.text "→ Share" ]
 
         autoHash =
             case model.autoHashing of
@@ -476,6 +503,26 @@ viewFe model =
 
         teacherLogin =
             Html.button [ Html.Events.onClick ReLogin ] [ Html.text "T" ]
+
+        otherState =
+            case model.state of
+                Active ->
+                    Paused
+
+                Paused ->
+                    Active
+
+        changeStateLabel =
+            case model.state of
+                Active ->
+                    "Pause"
+
+                Paused ->
+                    "Activate"
+
+        changeState =
+            Html.button [ Html.Events.onClick <| ChangeStateFe otherState ]
+                [ Html.text changeStateLabel ]
     in
     [ Html.div [] <|
         case model.role of
@@ -484,6 +531,7 @@ viewFe model =
                 , prefixSpinner
                 , msgHash
                 , autoHash
+                , changeState
                 , shareButton
                 , msgsTable model.messages deleteButton
                 , clearMessages

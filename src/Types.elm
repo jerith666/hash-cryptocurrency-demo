@@ -31,6 +31,11 @@ type FrontendModel
     | LoggedIn FeModel
 
 
+type State
+    = Active
+    | Paused
+
+
 type alias FeModel =
     { message : String
     , autoHashSuffix : Maybe Int
@@ -40,6 +45,7 @@ type alias FeModel =
     , shareRequests : List String
     , autoHashing : AutoHashing
     , role : ClientRole
+    , state : State
     }
 
 
@@ -49,6 +55,7 @@ type alias BackendModel =
     , messages : List String
     , shareRequests : List String
     , autoHashing : AutoHashing
+    , state : State
     }
 
 
@@ -58,6 +65,7 @@ type FrontendMsg
     | Login
     | WaitForTeacher
     | ReLogin
+    | ChangeStateFe State
     | UpdateMessage String
     | UpdatePrefixLenFe String
     | ShareMessageFe
@@ -73,6 +81,7 @@ type FrontendMsg
 
 type ToBackend
     = TeacherLogin String
+    | ChangeState State
     | UpdatePrefixLenBe Int
     | ShareMessage String
     | PermitMessage String
@@ -93,13 +102,16 @@ type ToFrontend
         , messages : List String
         , shareRequests : List String
         , autoHashing : AutoHashing
+        , state : State
         }
     | TeacherLoginBad
     | TeacherArrived
         { hashPrefixLen : Int
         , messages : List String
         , autoHashing : AutoHashing
+        , state : State
         }
+    | StateChanged State
     | PrefixLenUpdated Int
     | ShareMessageRequest String
     | MessageShared String

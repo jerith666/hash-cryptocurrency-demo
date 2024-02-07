@@ -26,6 +26,7 @@ init =
       , messages = []
       , shareRequests = []
       , autoHashing = Disabled
+      , state = Active
       }
     , Cmd.none
     )
@@ -46,6 +47,7 @@ update msg model =
                                     , messages = model.messages
                                     , shareRequests = model.shareRequests
                                     , autoHashing = model.autoHashing
+                                    , state = model.state
                                     }
                             )
 
@@ -56,6 +58,7 @@ update msg model =
                                     { hashPrefixLen = model.hashPrefixLen
                                     , messages = model.messages
                                     , autoHashing = model.autoHashing
+                                    , state = model.state
                                     }
                             )
 
@@ -97,18 +100,26 @@ updateFromFrontend sessionId clientId msg model =
                                 , messages = model.messages
                                 , shareRequests = model.shareRequests
                                 , autoHashing = model.autoHashing
+                                , state = model.state
                                 }
                         , broadcast <|
                             TeacherArrived
                                 { hashPrefixLen = model.hashPrefixLen
                                 , messages = model.messages
                                 , autoHashing = model.autoHashing
+                                , state = model.state
                                 }
                         ]
                     )
 
                 False ->
                     ( model, sendToFrontend clientId TeacherLoginBad )
+
+        ChangeState state ->
+            ifTeacher
+                ( { model | state = state }
+                , broadcast <| StateChanged state
+                )
 
         UpdatePrefixLenBe newLen ->
             ifTeacher
