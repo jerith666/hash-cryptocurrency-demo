@@ -132,12 +132,7 @@ update msg model =
                     )
 
         ClearMessagesFe ->
-            case model of
-                AnonFrontend _ _ ->
-                    unexpected msg model
-
-                LoggedIn _ ->
-                    ( model, sendToBackend ClearMessages )
+            ( model, sendToBackend ClearMessages )
 
         EnableAutoHashFe ->
             ( model, sendToBackend EnableAutoHash )
