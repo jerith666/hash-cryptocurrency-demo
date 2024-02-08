@@ -69,6 +69,27 @@ update msg model =
         ReLogin ->
             ( AnonFrontend "" LoginUnattempted, Cmd.none )
 
+        UpdateName name ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( LoggedIn { m | name = Naming name }, Cmd.none )
+
+        AcceptName ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    case m.name of
+                        Naming n ->
+                            ( LoggedIn { m | name = Named n }, Cmd.none )
+
+                        Named _ ->
+                            unexpected msg model
+
         ChangeStateFe state ->
             ( model, sendToBackend <| ChangeState state )
 
@@ -221,7 +242,8 @@ updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
     let
         initModel beModel shareRequests role =
-            { message = ""
+            { name = Naming ""
+            , message = ""
             , autoHashSuffix = Nothing
             , hashPrefixLen = beModel.hashPrefixLen
             , binaryDigits = Three
@@ -519,26 +541,38 @@ viewFe model =
             Html.button [ Html.Events.onClick <| ChangeStateFe otherState ]
                 [ Html.text changeStateLabel ]
     in
-    [ Html.div [] <|
-        case model.role of
-            Teacher ->
-                [ msgArea
-                , prefixSpinner
-                , msgHash
-                , autoHash
-                , changeState
-                , shareButton
-                , msgsTable model.messages deleteButton
-                , clearMessages
-                , msgsTable model.shareRequests shareDecision
+    case model.name of
+        Naming n ->
+            [ Html.div []
+                [ Html.text "Enter your name: "
+                , Html.input [ Attr.value n, Html.Events.onInput UpdateName ] []
+                , Html.button [ Html.Events.onClick AcceptName ] [ Html.text "OK" ]
                 ]
+            ]
 
-            Student ->
-                [ msgArea
-                , shareButton
-                , msgHash
-                , autoHash
-                , msgsTable model.messages <| always []
-                , teacherLogin
-                ]
-    ]
+        Named n ->
+            [ Html.div [] <|
+                case model.role of
+                    Teacher ->
+                        [ Html.text n
+                        , msgArea
+                        , prefixSpinner
+                        , msgHash
+                        , autoHash
+                        , changeState
+                        , shareButton
+                        , msgsTable model.messages deleteButton
+                        , clearMessages
+                        , msgsTable model.shareRequests shareDecision
+                        ]
+
+                    Student ->
+                        [ Html.text n
+                        , msgArea
+                        , shareButton
+                        , msgHash
+                        , autoHash
+                        , msgsTable model.messages <| always []
+                        , teacherLogin
+                        ]
+            ]

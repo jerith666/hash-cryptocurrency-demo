@@ -36,8 +36,14 @@ type State
     | Paused
 
 
+type Name
+    = Naming String
+    | Named String
+
+
 type alias FeModel =
-    { message : String
+    { name : Name
+    , message : String
     , autoHashSuffix : Maybe Int
     , hashPrefixLen : Int
     , binaryDigits : BinaryDigits
@@ -65,6 +71,8 @@ type FrontendMsg
     | Login
     | WaitForTeacher
     | ReLogin
+    | UpdateName String
+    | AcceptName
     | ChangeStateFe State
     | UpdateMessage String
     | UpdatePrefixLenFe String
