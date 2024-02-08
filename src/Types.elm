@@ -58,6 +58,7 @@ type alias FeModel =
 type alias BackendModel =
     { teacher : Maybe SessionId
     , hashPrefixLen : Int
+    , draftMessage : Maybe String
     , messages : List String
     , shareRequests : List String
     , autoHashing : AutoHashing
@@ -77,6 +78,7 @@ type FrontendMsg
     | UpdateMessage String
     | UpdatePrefixLenFe String
     | ShareMessageFe
+    | PushDraftMessageFe
     | PermitMessageFe String
     | DenyMessageFe String
     | DeleteMessageFe String
@@ -92,6 +94,7 @@ type ToBackend
     | ChangeState State
     | UpdatePrefixLenBe Int
     | ShareMessage String
+    | PushDraftMessage String
     | PermitMessage String
     | DenyMessage String
     | DeleteMessage String
@@ -107,6 +110,7 @@ type BackendMsg
 type ToFrontend
     = TeacherLoginOk
         { hashPrefixLen : Int
+        , draftMessage : Maybe String
         , messages : List String
         , shareRequests : List String
         , autoHashing : AutoHashing
@@ -115,6 +119,7 @@ type ToFrontend
     | TeacherLoginBad
     | TeacherArrived
         { hashPrefixLen : Int
+        , draftMessage : Maybe String
         , messages : List String
         , autoHashing : AutoHashing
         , state : State
@@ -123,6 +128,7 @@ type ToFrontend
     | PrefixLenUpdated Int
     | ShareMessageRequest String
     | MessageShared String
+    | DraftMessagePushed String
     | MessageDeleted String
     | MessagesCleared
     | AutoHashEnabled Int

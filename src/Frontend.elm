@@ -85,7 +85,13 @@ update msg model =
                 LoggedIn m ->
                     case m.name of
                         Naming n ->
-                            ( LoggedIn { m | name = Named n }, Cmd.none )
+                            ( LoggedIn
+                                { m
+                                    | name = Named n
+                                    , message = String.replace "$name" n m.message
+                                }
+                            , Cmd.none
+                            )
 
                         Named _ ->
                             unexpected msg model
@@ -121,6 +127,14 @@ update msg model =
 
                 LoggedIn m ->
                     ( model, sendToBackend <| ShareMessage m.message )
+
+        PushDraftMessageFe ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    ( model, sendToBackend <| PushDraftMessage m.message )
 
         PermitMessageFe message ->
             case model of
@@ -243,7 +257,7 @@ updateFromBackend msg model =
     let
         initModel beModel shareRequests role =
             { name = Naming ""
-            , message = ""
+            , message = Maybe.withDefault "" beModel.draftMessage
             , autoHashSuffix = Nothing
             , hashPrefixLen = beModel.hashPrefixLen
             , binaryDigits = Three
@@ -322,6 +336,23 @@ updateFromBackend msg model =
 
                 LoggedIn m ->
                     ( LoggedIn { m | messages = m.messages ++ [ message ] }, Cmd.none )
+
+        DraftMessagePushed message ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    let
+                        subbedMessage =
+                            case m.name of
+                                Naming _ ->
+                                    message
+
+                                Named n ->
+                                    String.replace "$name" n message
+                    in
+                    ( LoggedIn { m | message = subbedMessage }, Cmd.none )
 
         MessageDeleted message ->
             case model of
@@ -456,6 +487,9 @@ viewFe model =
         shareButton =
             Html.button (disabled :: [ Html.Events.onClick ShareMessageFe ]) [ Html.text "→ Share" ]
 
+        pushDraftButton =
+            Html.button [ Html.Events.onClick PushDraftMessageFe ] [ Html.text "Push" ]
+
         autoHash =
             case model.autoHashing of
                 Disabled ->
@@ -560,6 +594,7 @@ viewFe model =
                         , msgHash
                         , autoHash
                         , changeState
+                        , pushDraftButton
                         , shareButton
                         , msgsTable model.messages deleteButton
                         , clearMessages

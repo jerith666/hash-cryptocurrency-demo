@@ -23,6 +23,7 @@ init : ( Model, Cmd BackendMsg )
 init =
     ( { teacher = Nothing
       , hashPrefixLen = 1
+      , draftMessage = Nothing
       , messages = []
       , shareRequests = []
       , autoHashing = Disabled
@@ -44,6 +45,7 @@ update msg model =
                             , sendToFrontend clientId <|
                                 TeacherLoginOk
                                     { hashPrefixLen = model.hashPrefixLen
+                                    , draftMessage = model.draftMessage
                                     , messages = model.messages
                                     , shareRequests = model.shareRequests
                                     , autoHashing = model.autoHashing
@@ -56,6 +58,7 @@ update msg model =
                             , sendToFrontend clientId <|
                                 TeacherArrived
                                     { hashPrefixLen = model.hashPrefixLen
+                                    , draftMessage = model.draftMessage
                                     , messages = model.messages
                                     , autoHashing = model.autoHashing
                                     , state = model.state
@@ -97,6 +100,7 @@ updateFromFrontend sessionId clientId msg model =
                         [ sendToFrontend clientId <|
                             TeacherLoginOk
                                 { hashPrefixLen = model.hashPrefixLen
+                                , draftMessage = model.draftMessage
                                 , messages = model.messages
                                 , shareRequests = model.shareRequests
                                 , autoHashing = model.autoHashing
@@ -105,6 +109,7 @@ updateFromFrontend sessionId clientId msg model =
                         , broadcast <|
                             TeacherArrived
                                 { hashPrefixLen = model.hashPrefixLen
+                                , draftMessage = model.draftMessage
                                 , messages = model.messages
                                 , autoHashing = model.autoHashing
                                 , state = model.state
@@ -139,6 +144,12 @@ updateFromFrontend sessionId clientId msg model =
                             , sendToFrontend t <| ShareMessageRequest message
                             )
                         )
+
+        PushDraftMessage message ->
+            ifTeacher
+                ( { model | draftMessage = Just message }
+                , broadcast <| DraftMessagePushed message
+                )
 
         PermitMessage message ->
             ifTeacher
