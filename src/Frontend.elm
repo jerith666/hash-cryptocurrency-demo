@@ -482,7 +482,14 @@ viewFe model =
         msgHash =
             Html.div
                 [ Attr.style "font-family" "monospace" ]
-                [ Html.text <| hashFn <| msgWithHashSuffix model ]
+                [ Html.text <|
+                    case model.message of
+                        "" ->
+                            ""
+
+                        _ ->
+                            hashFn <| msgWithHashSuffix model
+                ]
 
         shareButton =
             Html.button (disabled :: [ Html.Events.onClick ShareMessageFe ]) [ Html.text "→ Share" ]
