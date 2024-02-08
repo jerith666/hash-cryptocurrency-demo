@@ -1,5 +1,6 @@
 module Frontend exposing (app)
 
+import BigInt
 import Binary
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
@@ -401,13 +402,16 @@ hash binaryDigits prefixLen message =
                 Three ->
                     3
     in
-    String.left prefixLen <|
-        String.concat <|
-            List.map String.fromInt <|
-                List.map Binary.toDecimal <|
-                    Binary.chunksOf binDigits <|
-                        SHA.sha256 <|
-                            Binary.fromStringAsUtf8 message
+    Binary.fromStringAsUtf8 message
+        |> SHA.sha256
+        |> Binary.toHex
+        |> BigInt.fromHexString
+        |> Maybe.map BigInt.toString
+        |> Maybe.withDefault ""
+        -- most significant digit will not be evenly distributed
+        -- so just reverse it; nobody will notice
+        |> String.reverse
+        |> String.left prefixLen
 
 
 view : Model -> Browser.Document FrontendMsg
