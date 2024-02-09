@@ -414,6 +414,30 @@ hash binaryDigits prefixLen message =
         |> String.left prefixLen
 
 
+splitLeadingZeros : String -> ( Maybe String, String )
+splitLeadingZeros s =
+    let
+        foldOne c ( zeros, remainder ) =
+            case remainder of
+                "" ->
+                    case c of
+                        '0' ->
+                            case zeros of
+                                Nothing ->
+                                    ( Just "0", "" )
+
+                                Just zs ->
+                                    ( Just <| String.cons '0' zs, "" )
+
+                        _ ->
+                            ( zeros, String.cons c remainder )
+
+                _ ->
+                    ( zeros, String.cons c remainder )
+    in
+    String.foldl foldOne ( Nothing, "" ) s
+
+
 view : Model -> Browser.Document FrontendMsg
 view model =
     { title = "Hash and Cryptocurrency Demo"
@@ -486,13 +510,28 @@ viewFe model =
         msgHash =
             Html.div
                 [ Attr.style "font-family" "monospace" ]
-                [ Html.text <|
+                [ Html.span [] <|
                     case model.message of
                         "" ->
-                            ""
+                            []
 
                         _ ->
-                            hashFn <| msgWithHashSuffix model
+                            let
+                                ( zeros, remainder ) =
+                                    splitLeadingZeros <| hashFn <| msgWithHashSuffix model
+                            in
+                            case zeros of
+                                Nothing ->
+                                    [ Html.text remainder ]
+
+                                Just zs ->
+                                    [ Html.span
+                                        [ Attr.style "background" "grey"
+                                        , Attr.style "color" "yellow"
+                                        ]
+                                        [ Html.text zs ]
+                                    , Html.text remainder
+                                    ]
                 ]
 
         shareButton =
