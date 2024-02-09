@@ -2,7 +2,6 @@ module Backend exposing (app)
 
 import Env
 import Lamdera exposing (ClientId, SessionId, broadcast, onConnect, sendToFrontend)
-import Task
 import Types exposing (..)
 
 

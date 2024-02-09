@@ -28,7 +28,7 @@ app =
         , onUrlChange = \_ -> NoOpFrontendMsg
         , update = update
         , updateFromBackend = updateFromBackend
-        , subscriptions = \m -> Sub.none
+        , subscriptions = \_ -> Sub.none
         , view = view
         }
 
