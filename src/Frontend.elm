@@ -210,7 +210,7 @@ autohash model =
         Enabled autoHashLen ->
             let
                 hashed =
-                    hash model.binaryDigits model.hashPrefixLen <| msgWithHashSuffix model
+                    hash model.hashPrefixLen <| msgWithHashSuffix model
 
                 prefixOk =
                     String.startsWith (String.repeat autoHashLen "0") hashed
@@ -261,7 +261,6 @@ updateFromBackend msg model =
             , message = Maybe.withDefault "" beModel.draftMessage
             , autoHashSuffix = Nothing
             , hashPrefixLen = beModel.hashPrefixLen
-            , binaryDigits = Three
             , messages = beModel.messages
             , shareRequests = shareRequests
             , autoHashing = beModel.autoHashing
@@ -388,20 +387,8 @@ updateFromBackend msg model =
                     ( LoggedIn { m | autoHashing = Disabled }, Cmd.none )
 
 
-hash : BinaryDigits -> Int -> String -> String
-hash binaryDigits prefixLen message =
-    let
-        binDigits =
-            case binaryDigits of
-                One ->
-                    1
-
-                Two ->
-                    2
-
-                Three ->
-                    3
-    in
+hash : Int -> String -> String
+hash prefixLen message =
     Binary.fromStringAsUtf8 message
         |> SHA.sha256
         |> Binary.toHex
@@ -484,7 +471,7 @@ viewFe model =
                     Attr.disabled False
 
         hashFn =
-            hash model.binaryDigits model.hashPrefixLen
+            hash model.hashPrefixLen
 
         msgArea =
             Html.textarea

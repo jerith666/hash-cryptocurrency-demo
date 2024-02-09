@@ -3,12 +3,6 @@ module Types exposing (..)
 import Lamdera exposing (ClientId, SessionId)
 
 
-type BinaryDigits
-    = One
-    | Two
-    | Three
-
-
 type ClientRole
     = Student
     | Teacher
@@ -46,7 +40,6 @@ type alias FeModel =
     , message : String
     , autoHashSuffix : Maybe Int
     , hashPrefixLen : Int
-    , binaryDigits : BinaryDigits
     , messages : List String
     , shareRequests : List String
     , autoHashing : AutoHashing
