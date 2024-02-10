@@ -448,6 +448,11 @@ white =
     El.rgb 1 1 1
 
 
+darkgray : El.Color
+darkgray =
+    El.rgb 0.3 0.3 0.3
+
+
 fullScreenWhiteOnBlack : El.Element msg -> Html msg
 fullScreenWhiteOnBlack =
     El.layout
@@ -456,6 +461,18 @@ fullScreenWhiteOnBlack =
         , Font.color white
         , Bg.color black
         ]
+
+
+styledButton : List (El.Attribute msg) -> { label : El.Element msg, onPress : Maybe msg } -> El.Element msg
+styledButton attrs =
+    Inp.button <|
+        [ Border.color white
+        , Border.solid
+        , Border.width 2
+        , Border.rounded 7
+        , El.padding 5
+        ]
+            ++ attrs
 
 
 view : Model -> Browser.Document FrontendMsg
@@ -556,6 +573,14 @@ viewLoggedIn model =
 
                 Teacher ->
                     Attr.disabled False
+
+        effectiveState =
+            case model.role of
+                Student ->
+                    model.state
+
+                Teacher ->
+                    Active
 
         hashFn =
             hash model.hashPrefixLen
@@ -775,13 +800,7 @@ viewLoggedIn model =
                                                 , label = Inp.labelHidden "Automatic Hashing Digits"
                                                 }
                                             , El.text " zeros "
-                                            , Inp.button
-                                                [ Border.color white
-                                                , Border.solid
-                                                , Border.width 2
-                                                , Border.rounded 7
-                                                , El.padding 5
-                                                ]
+                                            , styledButton []
                                                 { onPress = Just AutoHash
                                                 , label = El.text "💻 Go!"
                                                 }
@@ -793,7 +812,17 @@ viewLoggedIn model =
                                 [ El.spacingXY 20 0, El.width El.fill ]
                               <|
                                 [ Inp.multiline
-                                    [ Font.color white, Bg.color black, Font.family [ Font.monospace ] ]
+                                    [ Font.color <|
+                                        case effectiveState of
+                                            Active ->
+                                                white
+
+                                            Paused ->
+                                                darkgray
+                                    , Bg.color black
+                                    , Font.family [ Font.monospace ]
+                                    , El.htmlAttribute disabled
+                                    ]
                                     { onChange = UpdateMessage
                                     , text = msgWithHashSuffix model
                                     , placeholder = Just <| Inp.placeholder [] <| El.text "Enter Your Message"
@@ -803,17 +832,25 @@ viewLoggedIn model =
                                 , El.el [ El.width <| El.maximum 100 El.fill ] <|
                                     viewHashOf <|
                                         msgWithHashSuffix model
-                                , Inp.button []
-                                    { onPress = Just ShareMessageFe
-                                    , label = El.text "Share"
-                                    }
+                                , case effectiveState of
+                                    Paused ->
+                                        styledButton [ Border.color darkgray, Font.color darkgray ]
+                                            { onPress = Nothing
+                                            , label = El.text "Share"
+                                            }
+
+                                    Active ->
+                                        styledButton []
+                                            { onPress = Just ShareMessageFe
+                                            , label = El.text "Share"
+                                            }
                                 ]
                             , case model.messages of
                                 [] ->
                                     El.none
 
                                 _ ->
-                                    El.table []
+                                    El.table [ El.height El.fill, El.scrollbarY ]
                                         { data = model.messages
                                         , columns =
                                             [ { header = El.text "Message"
