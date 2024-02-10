@@ -599,7 +599,7 @@ viewLoggedIn model =
 
                                 Just zs ->
                                     [ Html.span
-                                        [ Attr.style "background" "grey"
+                                        [ Attr.style "background" "#555"
                                         , Attr.style "color" "yellow"
                                         ]
                                         [ Html.text zs ]
