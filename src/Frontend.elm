@@ -5,9 +5,14 @@ import Binary
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Digits exposing (encodeBaseSixtyTwo)
+import Element as El
+import Element.Background as Bg
+import Element.Font as Font
+import Element.Input as Inp
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events
+import Json.Decode
 import Lamdera exposing (sendToBackend)
 import Process
 import SHA
@@ -425,6 +430,16 @@ splitLeadingZeros s =
     String.foldl foldOne ( Nothing, "" ) s
 
 
+black : El.Color
+black =
+    El.rgb 0 0 0
+
+
+white : El.Color
+white =
+    El.rgb 1 1 1
+
+
 view : Model -> Browser.Document FrontendMsg
 view model =
     { title = "Hash and Cryptocurrency Demo"
@@ -442,16 +457,56 @@ view model =
                         [ Html.text "login failed" ]
 
                     LoginUnattempted ->
-                        [ Html.div []
-                            [ Html.input [ Attr.type_ "password", Attr.value password, Html.Events.onInput SetPassword ] []
-                            , Html.button [ Html.Events.onClick Login ] [ Html.text "log in" ]
-                            , Html.button [ Html.Events.onClick WaitForTeacher ] [ Html.text "wait for teacher" ]
+                        [ El.layout
+                            [ El.width El.fill
+                            , El.height El.fill
+                            , Font.color white
+                            , Bg.color black
                             ]
+                          <|
+                            El.column
+                                [ El.width El.fill, El.height El.fill ]
+                                [ Inp.button [ El.centerX, El.centerY ]
+                                    { onPress = Just WaitForTeacher
+                                    , label = El.text "Wait for the Teacher"
+                                    }
+                                , El.row [ El.padding 50, El.centerX, El.alignBottom ]
+                                    [ Inp.currentPassword
+                                        [ Bg.color black
+                                        , Font.color white
+                                        , Inp.focusedOnLoad
+                                        , onEnter Login
+                                        ]
+                                        { onChange = SetPassword
+                                        , text = password
+                                        , placeholder = Just <| Inp.placeholder [] <| El.text "Teacher Password"
+                                        , label = Inp.labelHidden "Teacher Password"
+                                        , show = False
+                                        }
+                                    ]
+                                ]
                         ]
 
             LoggedIn m ->
                 viewFe m
     }
+
+
+onEnter : msg -> El.Attribute msg
+onEnter msg =
+    El.htmlAttribute
+        (Html.Events.on "keyup"
+            (Json.Decode.field "key" Json.Decode.string
+                |> Json.Decode.andThen
+                    (\key ->
+                        if key == "Enter" then
+                            Json.Decode.succeed msg
+
+                        else
+                            Json.Decode.fail "Not the enter key"
+                    )
+            )
+        )
 
 
 viewFe : FeModel -> List (Html FrontendMsg)
