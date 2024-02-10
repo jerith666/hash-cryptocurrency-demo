@@ -883,8 +883,4 @@ viewLoggedIn model =
                                     , label = El.text "T"
                                     }
                             ]
-
-                    {- [ autoHash
-                       ]
-                    -}
                     ]
