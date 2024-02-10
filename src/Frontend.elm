@@ -113,7 +113,7 @@ update msg model =
                     unexpected msg model
 
                 LoggedIn m ->
-                    ( LoggedIn { m | message = newMsg }, Cmd.none )
+                    ( LoggedIn { m | message = newMsg, autoHashSuffix = Nothing }, Cmd.none )
 
         UpdatePrefixLenFe newLenStr ->
             case model of
@@ -756,7 +756,11 @@ viewLoggedIn model =
                         El.column
                             [ El.width El.fill, El.height El.fill, El.spacing 20, El.padding 10 ]
                         <|
-                            [ El.row [ El.alignTop, El.width El.fill ]
+                            [ El.row
+                                [ El.alignTop
+                                , El.width El.fill
+                                , El.height <| El.px 40
+                                ]
                                 [ case model.autoHashing of
                                     Disabled ->
                                         El.none
@@ -791,13 +795,14 @@ viewLoggedIn model =
                                 [ Inp.multiline
                                     [ Font.color white, Bg.color black, Font.family [ Font.monospace ] ]
                                     { onChange = UpdateMessage
-                                    , text = model.message
+                                    , text = msgWithHashSuffix model
                                     , placeholder = Just <| Inp.placeholder [] <| El.text "Enter Your Message"
                                     , label = Inp.labelHidden "Enter Your Message"
                                     , spellcheck = False
                                     }
                                 , El.el [ El.width <| El.maximum 100 El.fill ] <|
-                                    viewHashOf model.message
+                                    viewHashOf <|
+                                        msgWithHashSuffix model
                                 , Inp.button []
                                     { onPress = Just ShareMessageFe
                                     , label = El.text "Share"
