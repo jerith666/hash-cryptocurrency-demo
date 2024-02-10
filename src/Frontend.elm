@@ -426,13 +426,13 @@ splitLeadingZeros s =
                                     ( Just "0", "" )
 
                                 Just zs ->
-                                    ( Just <| String.cons '0' zs, "" )
+                                    ( Just <| zs ++ "0", "" )
 
                         _ ->
-                            ( zeros, String.cons c remainder )
+                            ( zeros, remainder ++ String.fromChar c )
 
                 _ ->
-                    ( zeros, String.cons c remainder )
+                    ( zeros, remainder ++ String.fromChar c )
     in
     String.foldl foldOne ( Nothing, "" ) s
 
