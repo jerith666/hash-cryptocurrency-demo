@@ -448,7 +448,10 @@ view model =
             AnonFrontend password state ->
                 case state of
                     WaitingForTeacher ->
-                        [ Html.text "waiting for teacher ..." ]
+                        [ El.layout [ El.width El.fill, El.height El.fill, Font.color white, Bg.color black ] <|
+                            El.el [ El.centerX, El.centerY ] <|
+                                El.text "Waiting for Teacher ..."
+                        ]
 
                     LoginInProgress ->
                         [ Html.text "logging in ..." ]
@@ -470,20 +473,26 @@ view model =
                                     { onPress = Just WaitForTeacher
                                     , label = El.text "Wait for the Teacher"
                                     }
-                                , El.row [ El.padding 50, El.centerX, El.alignBottom ]
-                                    [ Inp.currentPassword
-                                        [ Bg.color black
-                                        , Font.color white
-                                        , Inp.focusedOnLoad
-                                        , onEnter Login
-                                        ]
-                                        { onChange = SetPassword
-                                        , text = password
-                                        , placeholder = Just <| Inp.placeholder [] <| El.text "Teacher Password"
-                                        , label = Inp.labelHidden "Teacher Password"
-                                        , show = False
-                                        }
+                                , El.el
+                                    [ El.width <| El.px 300
+                                    , El.centerX
+                                    , El.above <|
+                                        El.el [ El.padding 50 ] <|
+                                            Inp.currentPassword
+                                                [ Bg.color black
+                                                , Font.color white
+                                                , Inp.focusedOnLoad
+                                                , onEnter Login
+                                                ]
+                                                { onChange = SetPassword
+                                                , text = password
+                                                , placeholder = Just <| Inp.placeholder [] <| El.text "Teacher Password"
+                                                , label = Inp.labelHidden "Teacher Password"
+                                                , show = False
+                                                }
                                     ]
+                                  <|
+                                    El.none
                                 ]
                         ]
 
