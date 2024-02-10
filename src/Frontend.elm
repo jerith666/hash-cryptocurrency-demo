@@ -463,53 +463,57 @@ view model =
     , body =
         case model of
             AnonFrontend password state ->
-                case state of
-                    WaitingForTeacher ->
-                        [ fullScreenWhiteOnBlack <|
-                            El.el [ El.centerX, El.centerY ] <|
-                                El.text "Waiting for Teacher ..."
-                        ]
-
-                    LoginInProgress ->
-                        [ Html.text "logging in ..." ]
-
-                    LoginFailed ->
-                        [ Html.text "login failed" ]
-
-                    LoginUnattempted ->
-                        [ fullScreenWhiteOnBlack <|
-                            El.column
-                                [ El.width El.fill, El.height El.fill ]
-                                [ Inp.button [ El.centerX, El.centerY ]
-                                    { onPress = Just WaitForTeacher
-                                    , label = El.text "Wait for the Teacher"
-                                    }
-                                , El.el
-                                    [ El.width <| El.px 300
-                                    , El.centerX
-                                    , El.above <|
-                                        El.el [ El.padding 50 ] <|
-                                            Inp.currentPassword
-                                                [ Bg.color black
-                                                , Font.color white
-                                                , Inp.focusedOnLoad
-                                                , onEnter Login
-                                                ]
-                                                { onChange = SetPassword
-                                                , text = password
-                                                , placeholder = Just <| Inp.placeholder [] <| El.text "Teacher Password"
-                                                , label = Inp.labelHidden "Teacher Password"
-                                                , show = False
-                                                }
-                                    ]
-                                  <|
-                                    El.none
-                                ]
-                        ]
+                viewAnon password state
 
             LoggedIn m ->
-                viewFe m
+                viewLoggedIn m
     }
+
+
+viewAnon password state =
+    case state of
+        WaitingForTeacher ->
+            [ fullScreenWhiteOnBlack <|
+                El.el [ El.centerX, El.centerY ] <|
+                    El.text "Waiting for Teacher ..."
+            ]
+
+        LoginInProgress ->
+            [ Html.text "logging in ..." ]
+
+        LoginFailed ->
+            [ Html.text "login failed" ]
+
+        LoginUnattempted ->
+            [ fullScreenWhiteOnBlack <|
+                El.column
+                    [ El.width El.fill, El.height El.fill ]
+                    [ Inp.button [ El.centerX, El.centerY ]
+                        { onPress = Just WaitForTeacher
+                        , label = El.text "Wait for the Teacher"
+                        }
+                    , El.el
+                        [ El.width <| El.px 300
+                        , El.centerX
+                        , El.above <|
+                            El.el [ El.padding 50 ] <|
+                                Inp.currentPassword
+                                    [ Bg.color black
+                                    , Font.color white
+                                    , Inp.focusedOnLoad
+                                    , onEnter Login
+                                    ]
+                                    { onChange = SetPassword
+                                    , text = password
+                                    , placeholder = Just <| Inp.placeholder [] <| El.text "Teacher Password"
+                                    , label = Inp.labelHidden "Teacher Password"
+                                    , show = False
+                                    }
+                        ]
+                      <|
+                        El.none
+                    ]
+            ]
 
 
 onEnter : msg -> El.Attribute msg
@@ -536,8 +540,8 @@ nameTextFieldId =
     "name"
 
 
-viewFe : FeModel -> List (Html FrontendMsg)
-viewFe model =
+viewLoggedIn : FeModel -> List (Html FrontendMsg)
+viewLoggedIn model =
     let
         disabled =
             case model.role of
@@ -716,9 +720,9 @@ viewFe model =
             ]
 
         Named n ->
-            [ Html.div [] <|
-                case model.role of
-                    Teacher ->
+            case model.role of
+                Teacher ->
+                    [ Html.div [] <|
                         [ Html.text n
                         , msgArea
                         , prefixSpinner
@@ -731,14 +735,51 @@ viewFe model =
                         , clearMessages
                         , msgsTable model.shareRequests shareDecision
                         ]
+                    ]
 
-                    Student ->
-                        [ Html.text n
-                        , msgArea
-                        , shareButton
-                        , msgHash
-                        , autoHash
-                        , msgsTable model.messages <| always []
-                        , teacherLogin
-                        ]
-            ]
+                Student ->
+                    [ fullScreenWhiteOnBlack <|
+                        El.column
+                            [ El.width El.fill
+                            , El.height El.fill
+                            ]
+                        <|
+                            [ El.el [ El.alignRight, El.alignTop, El.padding 10 ]
+                                (El.text <| "👤 " ++ n)
+                            , El.row
+                                [ El.spacingXY 20 0
+                                , El.padding 20
+                                , El.width El.fill
+                                ]
+                              <|
+                                [ Inp.multiline
+                                    [ Font.color white
+                                    , Bg.color black
+                                    , Font.family [ Font.monospace ]
+                                    ]
+                                    { onChange = UpdateMessage
+                                    , text = model.message
+                                    , placeholder = Just <| Inp.placeholder [] <| El.text "Enter a Message"
+                                    , label = Inp.labelHidden "Enter a Message"
+                                    , spellcheck = False
+                                    }
+                                , El.el [] <| El.html msgHash
+                                , Inp.button []
+                                    { onPress = Just ShareMessageFe
+                                    , label = El.text "Share"
+                                    }
+                                ]
+                            , El.el [ El.alignRight, El.alignBottom, El.padding 10 ] <|
+                                Inp.button
+                                    []
+                                    { onPress = Just ReLogin
+                                    , label = El.text "T"
+                                    }
+                            ]
+
+                    {- [  msgHash
+                       , autoHash
+                       , msgsTable model.messages <| always []
+                       ]
+                    -}
+                    ]
