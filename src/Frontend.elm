@@ -8,6 +8,7 @@ import Browser.Navigation as Nav
 import Digits exposing (encodeBaseSixtyTwo)
 import Element as El
 import Element.Background as Bg
+import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Inp
 import Html exposing (Html)
@@ -675,9 +676,6 @@ viewLoggedIn model =
         clearMessages =
             Html.button [ Html.Events.onClick ClearMessagesFe ] [ Html.text "clear messages" ]
 
-        teacherLogin =
-            Html.button [ Html.Events.onClick ReLogin ] [ Html.text "T" ]
-
         otherState =
             case model.state of
                 Active ->
@@ -697,6 +695,22 @@ viewLoggedIn model =
         changeState =
             Html.button [ Html.Events.onClick <| ChangeStateFe otherState ]
                 [ Html.text changeStateLabel ]
+
+        viewHashOf msg =
+            El.paragraph [ Font.family [ Font.monospace ] ] <|
+                case splitLeadingZeros <| hashFn msg of
+                    ( Nothing, remainder ) ->
+                        [ El.text remainder ]
+
+                    ( Just zeros, remainder ) ->
+                        [ El.el
+                            [ Bg.color <| El.rgb 0.375 0.375 0.375
+                            , Font.color <| El.rgb 1 1 0
+                            ]
+                          <|
+                            El.text zeros
+                        , El.text remainder
+                        ]
     in
     case model.name of
         Naming n ->
@@ -740,46 +754,95 @@ viewLoggedIn model =
                 Student ->
                     [ fullScreenWhiteOnBlack <|
                         El.column
-                            [ El.width El.fill
-                            , El.height El.fill
-                            ]
+                            [ El.width El.fill, El.height El.fill, El.spacing 20, El.padding 10 ]
                         <|
-                            [ El.el [ El.alignRight, El.alignTop, El.padding 10 ]
-                                (El.text <| "👤 " ++ n)
-                            , El.row
-                                [ El.spacingXY 20 0
-                                , El.padding 20
-                                , El.width El.fill
+                            [ El.row [ El.alignTop, El.width El.fill ]
+                                [ case model.autoHashing of
+                                    Disabled ->
+                                        El.none
+
+                                    Enabled autoDigits ->
+                                        El.row [ El.alignLeft, El.width El.fill ]
+                                            [ El.text "Make it start with "
+                                            , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 70, El.htmlAttribute <| Attr.type_ "number" ]
+                                                { onChange = UpdateAutoHashPrefixLen
+                                                , text = String.fromInt autoDigits
+                                                , placeholder = Nothing
+                                                , label = Inp.labelHidden "Automatic Hashing Digits"
+                                                }
+                                            , El.text " zeros "
+                                            , Inp.button
+                                                [ Border.color white
+                                                , Border.solid
+                                                , Border.width 2
+                                                , Border.rounded 7
+                                                , El.padding 5
+                                                ]
+                                                { onPress = Just AutoHash
+                                                , label = El.text "💻 Go!"
+                                                }
+                                            ]
+                                , El.el [ El.alignRight, El.alignTop ]
+                                    (El.text <| "👤 " ++ n)
                                 ]
+                            , El.row
+                                [ El.spacingXY 20 0, El.width El.fill ]
                               <|
                                 [ Inp.multiline
-                                    [ Font.color white
-                                    , Bg.color black
-                                    , Font.family [ Font.monospace ]
-                                    ]
+                                    [ Font.color white, Bg.color black, Font.family [ Font.monospace ] ]
                                     { onChange = UpdateMessage
                                     , text = model.message
-                                    , placeholder = Just <| Inp.placeholder [] <| El.text "Enter a Message"
-                                    , label = Inp.labelHidden "Enter a Message"
+                                    , placeholder = Just <| Inp.placeholder [] <| El.text "Enter Your Message"
+                                    , label = Inp.labelHidden "Enter Your Message"
                                     , spellcheck = False
                                     }
-                                , El.el [] <| El.html msgHash
+                                , El.el [ El.width <| El.maximum 100 El.fill ] <|
+                                    viewHashOf model.message
                                 , Inp.button []
                                     { onPress = Just ShareMessageFe
                                     , label = El.text "Share"
                                     }
                                 ]
-                            , El.el [ El.alignRight, El.alignBottom, El.padding 10 ] <|
-                                Inp.button
-                                    []
+                            , case model.messages of
+                                [] ->
+                                    El.none
+
+                                _ ->
+                                    El.table []
+                                        { data = model.messages
+                                        , columns =
+                                            [ { header = El.text "Message"
+                                              , width = El.fill
+                                              , view =
+                                                    \m ->
+                                                        El.el
+                                                            [ Font.family [ Font.monospace ]
+                                                            , El.paddingXY 0 5
+                                                            ]
+                                                        <|
+                                                            El.text m
+                                              }
+                                            , { header = El.text "Hash"
+                                              , width = El.maximum 100 El.fill
+                                              , view =
+                                                    \m ->
+                                                        El.el
+                                                            [ El.paddingXY 0 5
+                                                            , El.width <| El.maximum 100 El.fill
+                                                            ]
+                                                        <|
+                                                            viewHashOf m
+                                              }
+                                            ]
+                                        }
+                            , El.el [ El.alignRight, El.alignBottom ] <|
+                                Inp.button []
                                     { onPress = Just ReLogin
                                     , label = El.text "T"
                                     }
                             ]
 
-                    {- [  msgHash
-                       , autoHash
-                       , msgsTable model.messages <| always []
+                    {- [ autoHash
                        ]
                     -}
                     ]
