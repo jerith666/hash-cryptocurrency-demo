@@ -3,6 +3,7 @@ module Frontend exposing (app)
 import BigInt
 import Binary
 import Browser exposing (UrlRequest(..))
+import Browser.Dom
 import Browser.Navigation as Nav
 import Digits exposing (encodeBaseSixtyTwo)
 import Element as El
@@ -277,7 +278,9 @@ updateFromBackend msg model =
         TeacherLoginOk beModel ->
             case model of
                 AnonFrontend _ _ ->
-                    ( LoggedIn <| initModel beModel beModel.shareRequests Teacher, Cmd.none )
+                    ( LoggedIn <| initModel beModel beModel.shareRequests Teacher
+                    , Task.attempt (\_ -> NoOpFrontendMsg) <| Browser.Dom.focus nameTextFieldId
+                    )
 
                 LoggedIn _ ->
                     unexpected msg model
@@ -298,7 +301,9 @@ updateFromBackend msg model =
                             unexpected msg model
 
                         _ ->
-                            ( LoggedIn <| initModel beModel [] Student, Cmd.none )
+                            ( LoggedIn <| initModel beModel [] Student
+                            , Task.attempt (\_ -> NoOpFrontendMsg) <| Browser.Dom.focus nameTextFieldId
+                            )
 
                 LoggedIn m ->
                     case m.role of
@@ -308,7 +313,9 @@ updateFromBackend msg model =
                         Teacher ->
                             -- someone else has taken over the Teacher role;
                             -- downgrade ourselves to a Student
-                            ( LoggedIn <| initModel beModel [] Student, Cmd.none )
+                            ( LoggedIn <| initModel beModel [] Student
+                            , Task.attempt (\_ -> NoOpFrontendMsg) <| Browser.Dom.focus nameTextFieldId
+                            )
 
         StateChanged state ->
             case model of
@@ -440,6 +447,16 @@ white =
     El.rgb 1 1 1
 
 
+fullScreenWhiteOnBlack : El.Element msg -> Html msg
+fullScreenWhiteOnBlack =
+    El.layout
+        [ El.width El.fill
+        , El.height El.fill
+        , Font.color white
+        , Bg.color black
+        ]
+
+
 view : Model -> Browser.Document FrontendMsg
 view model =
     { title = "Hash and Cryptocurrency Demo"
@@ -448,7 +465,7 @@ view model =
             AnonFrontend password state ->
                 case state of
                     WaitingForTeacher ->
-                        [ El.layout [ El.width El.fill, El.height El.fill, Font.color white, Bg.color black ] <|
+                        [ fullScreenWhiteOnBlack <|
                             El.el [ El.centerX, El.centerY ] <|
                                 El.text "Waiting for Teacher ..."
                         ]
@@ -460,13 +477,7 @@ view model =
                         [ Html.text "login failed" ]
 
                     LoginUnattempted ->
-                        [ El.layout
-                            [ El.width El.fill
-                            , El.height El.fill
-                            , Font.color white
-                            , Bg.color black
-                            ]
-                          <|
+                        [ fullScreenWhiteOnBlack <|
                             El.column
                                 [ El.width El.fill, El.height El.fill ]
                                 [ Inp.button [ El.centerX, El.centerY ]
@@ -516,6 +527,13 @@ onEnter msg =
                     )
             )
         )
+
+
+{-| focusedOnLoad doesn't work reliably, so use Dom.focus with this ID in addition
+-}
+nameTextFieldId : String
+nameTextFieldId =
+    "name"
 
 
 viewFe : FeModel -> List (Html FrontendMsg)
@@ -678,11 +696,23 @@ viewFe model =
     in
     case model.name of
         Naming n ->
-            [ Html.div []
-                [ Html.text "Enter your name: "
-                , Html.input [ Attr.value n, Html.Events.onInput UpdateName ] []
-                , Html.button [ Html.Events.onClick AcceptName ] [ Html.text "OK" ]
-                ]
+            [ fullScreenWhiteOnBlack <|
+                Inp.text
+                    [ Bg.color black
+                    , Font.color white
+                    , Inp.focusedOnLoad
+                    , El.centerX
+                    , El.centerY
+                    , El.width <| El.px 300
+                    , onEnter AcceptName
+                    , Inp.focusedOnLoad
+                    , El.htmlAttribute <| Attr.id nameTextFieldId
+                    ]
+                    { onChange = UpdateName
+                    , text = n
+                    , placeholder = Just <| Inp.placeholder [] <| El.text "Your Name"
+                    , label = Inp.labelHidden "Your Name"
+                    }
             ]
 
         Named n ->
