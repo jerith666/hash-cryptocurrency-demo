@@ -777,110 +777,143 @@ viewLoggedIn model =
                     ]
 
                 Student ->
-                    [ fullScreenWhiteOnBlack <|
-                        El.column
-                            [ El.width El.fill, El.height El.fill, El.spacing 20, El.padding 10 ]
-                        <|
-                            [ El.row
-                                [ El.alignTop
-                                , El.width El.fill
-                                , El.height <| El.px 40
-                                ]
-                                [ case model.autoHashing of
-                                    Disabled ->
-                                        El.none
+                    viewNamed model n viewHashOf effectiveState disabled
 
-                                    Enabled autoDigits ->
-                                        El.row [ El.alignLeft, El.width El.fill ]
-                                            [ El.text "Make it start with "
-                                            , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 70, El.htmlAttribute <| Attr.type_ "number" ]
-                                                { onChange = UpdateAutoHashPrefixLen
-                                                , text = String.fromInt autoDigits
-                                                , placeholder = Nothing
-                                                , label = Inp.labelHidden "Automatic Hashing Digits"
-                                                }
-                                            , El.text " zeros "
-                                            , styledButton []
-                                                { onPress = Just AutoHash
-                                                , label = El.text "💻 Go!"
-                                                }
-                                            ]
-                                , El.el [ El.alignRight, El.alignTop ]
-                                    (El.text <| "👤 " ++ n)
-                                ]
-                            , El.row
-                                [ El.spacingXY 20 0, El.width El.fill ]
-                              <|
-                                [ Inp.multiline
-                                    [ Font.color <|
-                                        case effectiveState of
-                                            Active ->
-                                                white
 
-                                            Paused ->
-                                                darkgray
-                                    , Bg.color black
-                                    , Font.family [ Font.monospace ]
-                                    , El.htmlAttribute disabled
-                                    ]
-                                    { onChange = UpdateMessage
-                                    , text = msgWithHashSuffix model
-                                    , placeholder = Just <| Inp.placeholder [] <| El.text "Enter Your Message"
-                                    , label = Inp.labelHidden "Enter Your Message"
-                                    , spellcheck = False
-                                    }
-                                , El.el [ El.width <| El.maximum 100 El.fill ] <|
-                                    viewHashOf <|
-                                        msgWithHashSuffix model
-                                , case effectiveState of
-                                    Paused ->
-                                        styledButton [ Border.color darkgray, Font.color darkgray ]
-                                            { onPress = Nothing
-                                            , label = El.text "Share"
-                                            }
+hashDisplayWidth : Int
+hashDisplayWidth =
+    100
 
-                                    Active ->
-                                        styledButton []
-                                            { onPress = Just ShareMessageFe
-                                            , label = El.text "Share"
-                                            }
-                                ]
-                            , case model.messages of
-                                [] ->
-                                    El.none
 
-                                _ ->
-                                    El.table [ El.height El.fill, El.scrollbarY ]
-                                        { data = model.messages
-                                        , columns =
-                                            [ { header = El.text "Message"
-                                              , width = El.fill
-                                              , view =
-                                                    \m ->
-                                                        El.el
-                                                            [ Font.family [ Font.monospace ]
-                                                            , El.paddingXY 0 5
-                                                            ]
-                                                        <|
-                                                            El.text m
-                                              }
-                                            , { header = El.text "Hash"
-                                              , width = El.maximum 100 El.fill
-                                              , view =
-                                                    \m ->
-                                                        El.el
-                                                            [ El.paddingXY 0 5
-                                                            , El.width <| El.maximum 100 El.fill
-                                                            ]
-                                                        <|
-                                                            viewHashOf m
-                                              }
-                                            ]
-                                        }
-                            , El.el [ El.alignRight, El.alignBottom ] <|
-                                Inp.button []
-                                    { onPress = Just ReLogin
-                                    , label = El.text "T"
-                                    }
-                            ]
+viewNamed : FeModel -> String -> (String -> El.Element FrontendMsg) -> State -> Html.Attribute FrontendMsg -> List (Html FrontendMsg)
+viewNamed model n viewHashOf effectiveState disabled =
+    [ fullScreenWhiteOnBlack <|
+        El.column
+            [ El.width El.fill, El.height El.fill, El.spacing 20, El.padding 10 ]
+        <|
+            [ viewToolbar model n
+            , viewMsgShare model viewHashOf effectiveState disabled
+            , case model.messages of
+                [] ->
+                    El.none
+
+                _ ->
+                    viewMsgTable model viewHashOf
+            , El.el [ El.alignRight, El.alignBottom ] <|
+                Inp.button []
+                    { onPress = Just ReLogin
+                    , label = El.text "T"
+                    }
+            ]
+    ]
+
+
+viewToolbar : FeModel -> String -> El.Element FrontendMsg
+viewToolbar model n =
+    El.row
+        [ El.alignTop
+        , El.width El.fill
+        , El.height <| El.px 40
+        ]
+        [ case model.autoHashing of
+            Disabled ->
+                El.none
+
+            Enabled autoDigits ->
+                El.row [ El.alignLeft, El.width El.fill ]
+                    [ El.text "Make it start with "
+                    , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 70, El.htmlAttribute <| Attr.type_ "number" ]
+                        { onChange = UpdateAutoHashPrefixLen
+                        , text = String.fromInt autoDigits
+                        , placeholder = Nothing
+                        , label = Inp.labelHidden "Automatic Hashing Digits"
+                        }
+                    , El.text " zeros "
+                    , styledButton []
+                        { onPress = Just AutoHash
+                        , label = El.text "💻 Go!"
+                        }
                     ]
+
+        {- ,case model.role of
+           Student ->
+               El.none
+
+           Teacher ->
+               styledButton [] { onPress = Just ChangeStateFe, label = El.text "change state" }
+        -}
+        , El.el [ El.alignRight, El.alignTop ]
+            (El.text <| "👤 " ++ n)
+        ]
+
+
+viewMsgShare : FeModel -> (String -> El.Element FrontendMsg) -> State -> Html.Attribute FrontendMsg -> El.Element FrontendMsg
+viewMsgShare model viewHashOf effectiveState disabled =
+    El.row
+        [ El.spacingXY 20 0, El.width El.fill ]
+    <|
+        [ Inp.multiline
+            [ Font.color <|
+                case effectiveState of
+                    Active ->
+                        white
+
+                    Paused ->
+                        darkgray
+            , Bg.color black
+            , Font.family [ Font.monospace ]
+            , El.htmlAttribute disabled
+            ]
+            { onChange = UpdateMessage
+            , text = msgWithHashSuffix model
+            , placeholder = Just <| Inp.placeholder [] <| El.text "Enter Your Message"
+            , label = Inp.labelHidden "Enter Your Message"
+            , spellcheck = False
+            }
+        , El.el [ El.width <| El.maximum hashDisplayWidth El.fill ] <|
+            viewHashOf <|
+                msgWithHashSuffix model
+        , case effectiveState of
+            Paused ->
+                styledButton [ Border.color darkgray, Font.color darkgray ]
+                    { onPress = Nothing
+                    , label = El.text "Share"
+                    }
+
+            Active ->
+                styledButton []
+                    { onPress = Just ShareMessageFe
+                    , label = El.text "Share"
+                    }
+        ]
+
+
+viewMsgTable : FeModel -> (String -> El.Element FrontendMsg) -> El.Element FrontendMsg
+viewMsgTable model viewHashOf =
+    El.table [ El.height El.fill, El.scrollbarY ]
+        { data = model.messages
+        , columns =
+            [ { header = El.text "Message"
+              , width = El.fill
+              , view =
+                    \m ->
+                        El.el
+                            [ Font.family [ Font.monospace ]
+                            , El.paddingXY 0 5
+                            ]
+                        <|
+                            El.text m
+              }
+            , { header = El.text "Hash"
+              , width = El.maximum hashDisplayWidth El.fill
+              , view =
+                    \m ->
+                        El.el
+                            [ El.paddingXY 0 5
+                            , El.width <| El.maximum hashDisplayWidth El.fill
+                            ]
+                        <|
+                            viewHashOf m
+              }
+            ]
+        }
