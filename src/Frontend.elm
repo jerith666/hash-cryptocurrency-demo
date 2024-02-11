@@ -826,7 +826,7 @@ viewToolbar model n =
             Enabled autoDigits ->
                 El.row [ El.alignLeft, El.width El.fill ]
                     [ El.text "Make it start with "
-                    , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 70, El.htmlAttribute <| Attr.type_ "number" ]
+                    , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 60, El.htmlAttribute <| Attr.type_ "number" ]
                         { onChange = UpdateAutoHashPrefixLen
                         , text = String.fromInt autoDigits
                         , placeholder = Nothing
@@ -837,6 +837,21 @@ viewToolbar model n =
                         { onPress = Just AutoHash
                         , label = El.text "💻 Go!"
                         }
+                    ]
+        , case model.role of
+            Student ->
+                El.none
+
+            Teacher ->
+                El.row [ El.alignLeft, El.width El.fill ]
+                    [ El.text "Show "
+                    , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 60, El.htmlAttribute <| Attr.type_ "number" ]
+                        { onChange = UpdatePrefixLenFe
+                        , text = fromInt model.hashPrefixLen
+                        , placeholder = Nothing
+                        , label = Inp.labelHidden "Hash Prefix Length"
+                        }
+                    , El.text " digits"
                     ]
         , case model.role of
             Student ->
