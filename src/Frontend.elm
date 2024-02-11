@@ -511,7 +511,7 @@ viewAnon password state =
             [ fullScreenWhiteOnBlack <|
                 El.column
                     [ El.width El.fill, El.height El.fill ]
-                    [ Inp.button [ El.centerX, El.centerY ]
+                    [ styledButton [ El.centerX, El.centerY ]
                         { onPress = Just WaitForTeacher
                         , label = El.text "Wait for the Teacher"
                         }
@@ -625,22 +625,27 @@ viewLoggedIn model =
     case model.name of
         Naming n ->
             [ fullScreenWhiteOnBlack <|
-                Inp.text
-                    [ Bg.color black
-                    , Font.color white
-                    , Inp.focusedOnLoad
-                    , El.centerX
+                El.row
+                    [ El.centerX
                     , El.centerY
-                    , El.width <| El.px 300
-                    , onEnter AcceptName
-                    , Inp.focusedOnLoad
-                    , El.htmlAttribute <| Attr.id nameTextFieldId
+                    , El.spacingXY 10 0
                     ]
-                    { onChange = UpdateName
-                    , text = n
-                    , placeholder = Just <| Inp.placeholder [] <| El.text "Your Name"
-                    , label = Inp.labelHidden "Your Name"
-                    }
+                    [ Inp.text
+                        [ Bg.color black
+                        , Font.color white
+                        , Inp.focusedOnLoad
+                        , El.width <| El.px 300
+                        , onEnter AcceptName
+                        , Inp.focusedOnLoad
+                        , El.htmlAttribute <| Attr.id nameTextFieldId
+                        ]
+                        { onChange = UpdateName
+                        , text = n
+                        , placeholder = Just <| Inp.placeholder [] <| El.text "Your Name"
+                        , label = Inp.labelHidden "Your Name"
+                        }
+                    , styledButton [] { label = El.text "⏎", onPress = Just AcceptName }
+                    ]
             ]
 
         Named n ->
