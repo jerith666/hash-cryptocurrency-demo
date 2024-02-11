@@ -368,7 +368,12 @@ updateFromBackend msg model =
                                     message
 
                                 Named n ->
-                                    String.replace "$name" n message
+                                    case m.role of
+                                        Student ->
+                                            String.replace "$name" n message
+
+                                        Teacher ->
+                                            message
                     in
                     ( LoggedIn { m | message = subbedMessage }, Cmd.none )
 
