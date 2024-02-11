@@ -113,7 +113,14 @@ update msg model =
                     unexpected msg model
 
                 LoggedIn m ->
-                    ( LoggedIn { m | message = newMsg, autoHashSuffix = Nothing }, Cmd.none )
+                    ( LoggedIn { m | message = newMsg, autoHashSuffix = Nothing }
+                    , case m.autoPush of
+                        AutoPushDisabled ->
+                            Cmd.none
+
+                        AutoPushEnabled ->
+                            sendToBackend <| PushDraftMessage newMsg
+                    )
 
         UpdatePrefixLenFe newLenStr ->
             case model of
@@ -143,6 +150,19 @@ update msg model =
 
                 LoggedIn m ->
                     ( model, sendToBackend <| PushDraftMessage m.message )
+
+        ToggleAutoPush ->
+            case model of
+                AnonFrontend _ _ ->
+                    unexpected msg model
+
+                LoggedIn m ->
+                    case m.autoPush of
+                        AutoPushDisabled ->
+                            ( LoggedIn { m | autoPush = AutoPushEnabled }, Cmd.none )
+
+                        AutoPushEnabled ->
+                            ( LoggedIn { m | autoPush = AutoPushDisabled }, Cmd.none )
 
         PermitMessageFe message ->
             case model of
@@ -276,6 +296,7 @@ updateFromBackend msg model =
             , messages = beModel.messages
             , shareRequests = shareRequests
             , autoHashing = beModel.autoHashing
+            , autoPush = AutoPushDisabled
             , role = role
             , state = beModel.state
             }
@@ -787,6 +808,17 @@ viewToolbar model n =
             styledButton []
                 { onPress = Just PushDraftMessageFe
                 , label = El.text "Push"
+                }
+        , ifTeacher model <|
+            styledButton []
+                { onPress = Just ToggleAutoPush
+                , label =
+                    case model.autoPush of
+                        AutoPushDisabled ->
+                            El.text "+ AutoPush"
+
+                        AutoPushEnabled ->
+                            El.text "- AutoPush"
                 }
         , ifTeacher model <|
             styledButton []

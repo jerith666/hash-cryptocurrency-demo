@@ -13,6 +13,11 @@ type AutoHashing
     | Disabled
 
 
+type AutoPush
+    = AutoPushEnabled
+    | AutoPushDisabled
+
+
 type AnonState
     = LoginUnattempted
     | LoginInProgress
@@ -43,6 +48,7 @@ type alias FeModel =
     , messages : List String
     , shareRequests : List String
     , autoHashing : AutoHashing
+    , autoPush : AutoPush
     , role : ClientRole
     , state : State
     }
@@ -72,6 +78,7 @@ type FrontendMsg
     | UpdatePrefixLenFe String
     | ShareMessageFe
     | PushDraftMessageFe
+    | ToggleAutoPush
     | PermitMessageFe String
     | DenyMessageFe String
     | DeleteMessageFe String
