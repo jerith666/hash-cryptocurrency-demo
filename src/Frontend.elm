@@ -801,7 +801,7 @@ viewNamed model n viewHashOf effectiveState disabled =
                     El.none
 
                 _ ->
-                    viewMsgTable model viewHashOf
+                    viewMsgTable model (msgTeacherActions model) viewHashOf
             , El.el [ El.alignRight, El.alignBottom ] <|
                 Inp.button []
                     { onPress = Just ReLogin
@@ -809,6 +809,16 @@ viewNamed model n viewHashOf effectiveState disabled =
                     }
             ]
     ]
+
+
+msgTeacherActions : FeModel -> List (ColumnButton FrontendMsg)
+msgTeacherActions model =
+    case model.role of
+        Student ->
+            []
+
+        Teacher ->
+            [ { label = "X", header = "", msg = DeleteMessageFe } ]
 
 
 viewToolbar : FeModel -> String -> El.Element FrontendMsg
@@ -933,32 +943,53 @@ viewMsgShare model viewHashOf effectiveState disabled =
         ]
 
 
-viewMsgTable : FeModel -> (String -> El.Element FrontendMsg) -> El.Element FrontendMsg
-viewMsgTable model viewHashOf =
+type alias ColumnButton msg =
+    { header : String
+    , label : String
+    , msg : String -> msg
+    }
+
+
+column : ColumnButton msg -> El.Column String msg
+column cb =
+    { header = El.text cb.header
+    , width = El.shrink
+    , view =
+        \m ->
+            styledButton []
+                { label = El.text cb.label
+                , onPress = Just <| cb.msg m
+                }
+    }
+
+
+viewMsgTable : FeModel -> List (ColumnButton FrontendMsg) -> (String -> El.Element FrontendMsg) -> El.Element FrontendMsg
+viewMsgTable model colButtons viewHashOf =
     El.table [ El.height El.fill, El.scrollbarY ]
         { data = model.messages
         , columns =
-            [ { header = El.text "Message"
-              , width = El.fill
-              , view =
-                    \m ->
-                        El.el
-                            [ Font.family [ Font.monospace ]
-                            , El.paddingXY 0 5
-                            ]
-                        <|
-                            El.text m
-              }
-            , { header = El.text "Hash"
-              , width = El.maximum hashDisplayWidth El.fill
-              , view =
-                    \m ->
-                        El.el
-                            [ El.paddingXY 0 5
-                            , El.width <| El.maximum hashDisplayWidth El.fill
-                            ]
-                        <|
-                            viewHashOf m
-              }
-            ]
+            List.map column colButtons
+                ++ [ { header = El.text "Message"
+                     , width = El.fill
+                     , view =
+                        \m ->
+                            El.el
+                                [ Font.family [ Font.monospace ]
+                                , El.paddingXY 0 5
+                                ]
+                            <|
+                                El.text m
+                     }
+                   , { header = El.text "Hash"
+                     , width = El.maximum hashDisplayWidth El.fill
+                     , view =
+                        \m ->
+                            El.el
+                                [ El.paddingXY 0 5
+                                , El.width <| El.maximum hashDisplayWidth El.fill
+                                ]
+                            <|
+                                viewHashOf m
+                     }
+                   ]
         }
