@@ -802,11 +802,16 @@ viewNamed model n viewHashOf effectiveState disabled =
 
                 _ ->
                     viewMsgTable model (msgTeacherActions model) viewHashOf
-            , El.el [ El.alignRight, El.alignBottom ] <|
-                Inp.button []
-                    { onPress = Just ReLogin
-                    , label = El.text "T"
-                    }
+            , case model.role of
+                Student ->
+                    El.el [ El.alignRight, El.alignBottom ] <|
+                        Inp.button []
+                            { onPress = Just ReLogin
+                            , label = El.text "T"
+                            }
+
+                Teacher ->
+                    El.none
             ]
     ]
 
