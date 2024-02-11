@@ -718,11 +718,22 @@ viewToolbar model n =
         ]
         [ case model.autoHashing of
             Disabled ->
-                El.none
+                case model.role of
+                    Student ->
+                        El.none
+
+                    Teacher ->
+                        styledButton [] { onPress = Just EnableAutoHashFe, label = El.text "💻 On" }
 
             Enabled autoDigits ->
                 El.row [ El.alignLeft, El.width El.fill ]
-                    [ El.text "Make it start with "
+                    [ case model.role of
+                        Student ->
+                            El.none
+
+                        Teacher ->
+                            styledButton [] { onPress = Just DisableAutoHashFe, label = El.text "💻 Off" }
+                    , El.text "Make it start with "
                     , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 60, El.htmlAttribute <| Attr.type_ "number" ]
                         { onChange = UpdateAutoHashPrefixLen
                         , text = String.fromInt autoDigits
@@ -740,7 +751,7 @@ viewToolbar model n =
                 El.none
 
             Teacher ->
-                El.row [ El.alignLeft, El.width El.fill ]
+                El.row [ El.alignRight, El.width El.shrink ]
                     [ El.text "Show "
                     , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 60, El.htmlAttribute <| Attr.type_ "number" ]
                         { onChange = UpdatePrefixLenFe
