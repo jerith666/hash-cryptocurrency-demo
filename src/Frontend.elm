@@ -662,6 +662,26 @@ hashDisplayWidth =
     100
 
 
+ifTeacher : FeModel -> El.Element msg -> El.Element msg
+ifTeacher model el =
+    case model.role of
+        Student ->
+            El.none
+
+        Teacher ->
+            el
+
+
+ifStudent : FeModel -> El.Element msg -> El.Element msg
+ifStudent model el =
+    case model.role of
+        Student ->
+            el
+
+        Teacher ->
+            El.none
+
+
 viewNamed : FeModel -> String -> (String -> El.Element FrontendMsg) -> State -> Html.Attribute FrontendMsg -> List (Html FrontendMsg)
 viewNamed model n viewHashOf effectiveState disabled =
     [ fullScreenWhiteOnBlack <|
@@ -676,22 +696,14 @@ viewNamed model n viewHashOf effectiveState disabled =
 
                 _ ->
                     viewMsgTable model.messages (msgTeacherActions model) viewHashOf
-            , case model.role of
-                Student ->
-                    El.none
-
-                Teacher ->
-                    viewMsgTable model.shareRequests (msgShareReqActions model) viewHashOf
-            , case model.role of
-                Student ->
-                    El.el [ El.alignRight, El.alignBottom ] <|
-                        Inp.button []
-                            { onPress = Just ReLogin
-                            , label = El.text "T"
-                            }
-
-                Teacher ->
-                    El.none
+            , ifTeacher model <|
+                viewMsgTable model.shareRequests (msgShareReqActions model) viewHashOf
+            , ifStudent model <|
+                El.el [ El.alignRight, El.alignBottom ] <|
+                    Inp.button []
+                        { onPress = Just ReLogin
+                        , label = El.text "T"
+                        }
             ]
     ]
 
@@ -728,83 +740,59 @@ viewToolbar model n =
         ]
         [ case model.autoHashing of
             Disabled ->
-                case model.role of
-                    Student ->
-                        El.none
-
-                    Teacher ->
-                        styledButton [] { onPress = Just EnableAutoHashFe, label = El.text "💻 On" }
+                ifTeacher model <|
+                    styledButton [] { onPress = Just EnableAutoHashFe, label = El.text "💻 On" }
 
             Enabled autoDigits ->
                 El.row [ El.alignLeft, El.width El.fill ]
-                    [ case model.role of
-                        Student ->
-                            El.none
-
-                        Teacher ->
-                            styledButton [] { onPress = Just DisableAutoHashFe, label = El.text "💻 Off" }
-                    , El.text "Make it start with "
+                    [ ifTeacher model <|
+                        styledButton [] { onPress = Just DisableAutoHashFe, label = El.text "💻 Off" }
+                    , ifStudent model <| El.text "Make it start with "
                     , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 60, El.htmlAttribute <| Attr.type_ "number" ]
                         { onChange = UpdateAutoHashPrefixLen
                         , text = String.fromInt autoDigits
                         , placeholder = Nothing
                         , label = Inp.labelHidden "Automatic Hashing Digits"
                         }
-                    , El.text " zeros "
+                    , ifStudent model <| El.text " zeros "
                     , styledButton []
                         { onPress = Just AutoHash
                         , label = El.text "💻 Go!"
                         }
                     ]
-        , case model.role of
-            Student ->
-                El.none
-
-            Teacher ->
-                El.row [ El.alignRight, El.width El.shrink ]
-                    [ El.text "Show "
-                    , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 60, El.htmlAttribute <| Attr.type_ "number" ]
-                        { onChange = UpdatePrefixLenFe
-                        , text = fromInt model.hashPrefixLen
-                        , placeholder = Nothing
-                        , label = Inp.labelHidden "Hash Prefix Length"
-                        }
-                    , El.text " digits"
-                    ]
-        , case model.role of
-            Student ->
-                El.none
-
-            Teacher ->
-                styledButton []
-                    { onPress = Just <| ChangeStateFe <| otherState model.state
-                    , label =
-                        El.text <|
-                            case model.state of
-                                Active ->
-                                    "Pause"
-
-                                Paused ->
-                                    "Activate"
+        , ifTeacher model <|
+            El.row [ El.alignRight, El.width El.shrink ]
+                [ El.text "Show "
+                , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 60, El.htmlAttribute <| Attr.type_ "number" ]
+                    { onChange = UpdatePrefixLenFe
+                    , text = fromInt model.hashPrefixLen
+                    , placeholder = Nothing
+                    , label = Inp.labelHidden "Hash Prefix Length"
                     }
-        , case model.role of
-            Student ->
-                El.none
+                , El.text " digits"
+                ]
+        , ifTeacher model <|
+            styledButton []
+                { onPress = Just <| ChangeStateFe <| otherState model.state
+                , label =
+                    El.text <|
+                        case model.state of
+                            Active ->
+                                "Pause"
 
-            Teacher ->
-                styledButton []
-                    { onPress = Just PushDraftMessageFe
-                    , label = El.text "Push"
-                    }
-        , case model.role of
-            Student ->
-                El.none
-
-            Teacher ->
-                styledButton []
-                    { onPress = Just ClearMessagesFe
-                    , label = El.text "Clear"
-                    }
+                            Paused ->
+                                "Activate"
+                }
+        , ifTeacher model <|
+            styledButton []
+                { onPress = Just PushDraftMessageFe
+                , label = El.text "Push"
+                }
+        , ifTeacher model <|
+            styledButton []
+                { onPress = Just ClearMessagesFe
+                , label = El.text "Clear"
+                }
         , El.el [ El.alignRight, El.alignTop ]
             (El.text <| "👤 " ++ n)
         ]
