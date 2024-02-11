@@ -558,6 +558,15 @@ nameTextFieldId =
     "name"
 
 
+otherState state =
+    case state of
+        Active ->
+            Paused
+
+        Paused ->
+            Active
+
+
 viewLoggedIn : FeModel -> List (Html FrontendMsg)
 viewLoggedIn model =
     let
@@ -701,14 +710,6 @@ viewLoggedIn model =
         clearMessages =
             Html.button [ Html.Events.onClick ClearMessagesFe ] [ Html.text "clear messages" ]
 
-        otherState =
-            case model.state of
-                Active ->
-                    Paused
-
-                Paused ->
-                    Active
-
         changeStateLabel =
             case model.state of
                 Active ->
@@ -718,7 +719,7 @@ viewLoggedIn model =
                     "Activate"
 
         changeState =
-            Html.button [ Html.Events.onClick <| ChangeStateFe otherState ]
+            Html.button [ Html.Events.onClick <| ChangeStateFe <| otherState model.state ]
                 [ Html.text changeStateLabel ]
 
         viewHashOf msg =
@@ -761,21 +762,23 @@ viewLoggedIn model =
         Named n ->
             case model.role of
                 Teacher ->
-                    [ Html.div [] <|
-                        [ Html.text n
-                        , msgArea
-                        , prefixSpinner
-                        , msgHash
-                        , autoHash
-                        , changeState
-                        , pushDraftButton
-                        , shareButton
-                        , msgsTable model.messages deleteButton
-                        , clearMessages
-                        , msgsTable model.shareRequests shareDecision
-                        ]
-                    ]
+                    viewNamed model n viewHashOf effectiveState disabled
 
+                {- [ Html.div [] <|
+                       [ Html.text n
+                       , msgArea
+                       , prefixSpinner -- TONLY
+                       , msgHash
+                       , autoHash
+                       , changeState -- TONLY
+                       , pushDraftButton -- TONLY
+                       , shareButton
+                       , msgsTable model.messages deleteButton
+                       , clearMessages -- TONLY
+                       , msgsTable model.shareRequests shareDecision -- TONLY
+                       ]
+                   ]
+                -}
                 Student ->
                     viewNamed model n viewHashOf effectiveState disabled
 
@@ -814,6 +817,7 @@ viewToolbar model n =
         [ El.alignTop
         , El.width El.fill
         , El.height <| El.px 40
+        , El.spacing 10
         ]
         [ case model.autoHashing of
             Disabled ->
@@ -834,14 +838,40 @@ viewToolbar model n =
                         , label = El.text "💻 Go!"
                         }
                     ]
+        , case model.role of
+            Student ->
+                El.none
 
-        {- ,case model.role of
-           Student ->
-               El.none
+            Teacher ->
+                styledButton []
+                    { onPress = Just <| ChangeStateFe <| otherState model.state
+                    , label =
+                        El.text <|
+                            case model.state of
+                                Active ->
+                                    "Pause"
 
-           Teacher ->
-               styledButton [] { onPress = Just ChangeStateFe, label = El.text "change state" }
-        -}
+                                Paused ->
+                                    "Activate"
+                    }
+        , case model.role of
+            Student ->
+                El.none
+
+            Teacher ->
+                styledButton []
+                    { onPress = Just PushDraftMessageFe
+                    , label = El.text "Push"
+                    }
+        , case model.role of
+            Student ->
+                El.none
+
+            Teacher ->
+                styledButton []
+                    { onPress = Just ClearMessagesFe
+                    , label = El.text "Clear"
+                    }
         , El.el [ El.alignRight, El.alignTop ]
             (El.text <| "👤 " ++ n)
         ]
