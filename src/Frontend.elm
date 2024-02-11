@@ -801,7 +801,13 @@ viewNamed model n viewHashOf effectiveState disabled =
                     El.none
 
                 _ ->
-                    viewMsgTable model (msgTeacherActions model) viewHashOf
+                    viewMsgTable model.messages (msgTeacherActions model) viewHashOf
+            , case model.role of
+                Student ->
+                    El.none
+
+                Teacher ->
+                    viewMsgTable model.shareRequests (msgShareReqActions model) viewHashOf
             , case model.role of
                 Student ->
                     El.el [ El.alignRight, El.alignBottom ] <|
@@ -824,6 +830,18 @@ msgTeacherActions model =
 
         Teacher ->
             [ { label = "X", header = "", msg = DeleteMessageFe } ]
+
+
+msgShareReqActions : FeModel -> List (ColumnButton FrontendMsg)
+msgShareReqActions model =
+    case model.role of
+        Student ->
+            []
+
+        Teacher ->
+            [ { label = "X", header = "", msg = DenyMessageFe }
+            , { label = "OK", header = "", msg = PermitMessageFe }
+            ]
 
 
 viewToolbar : FeModel -> String -> El.Element FrontendMsg
@@ -968,10 +986,10 @@ column cb =
     }
 
 
-viewMsgTable : FeModel -> List (ColumnButton FrontendMsg) -> (String -> El.Element FrontendMsg) -> El.Element FrontendMsg
-viewMsgTable model colButtons viewHashOf =
+viewMsgTable : List String -> List (ColumnButton FrontendMsg) -> (String -> El.Element FrontendMsg) -> El.Element FrontendMsg
+viewMsgTable messages colButtons viewHashOf =
     El.table [ El.height El.fill, El.scrollbarY ]
-        { data = model.messages
+        { data = messages
         , columns =
             List.map column colButtons
                 ++ [ { header = El.text "Message"
