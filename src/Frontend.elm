@@ -98,7 +98,7 @@ update msg model =
                                     | name = Named n
                                     , message = String.replace "$name" n m.message
                                 }
-                            , Cmd.none
+                            , focusById msgTextAreaId
                             )
 
                         Named _ ->
@@ -260,6 +260,11 @@ unexpected _ model =
     ( model, Cmd.none )
 
 
+focusById : String -> Cmd FrontendMsg
+focusById id =
+    Task.attempt (\_ -> NoOpFrontendMsg) <| Browser.Dom.focus id
+
+
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
     let
@@ -280,7 +285,7 @@ updateFromBackend msg model =
             case model of
                 AnonFrontend _ _ ->
                     ( LoggedIn <| initModel beModel beModel.shareRequests Teacher
-                    , Task.attempt (\_ -> NoOpFrontendMsg) <| Browser.Dom.focus nameTextFieldId
+                    , focusById nameTextFieldId
                     )
 
                 LoggedIn _ ->
@@ -303,7 +308,7 @@ updateFromBackend msg model =
 
                         _ ->
                             ( LoggedIn <| initModel beModel [] Student
-                            , Task.attempt (\_ -> NoOpFrontendMsg) <| Browser.Dom.focus nameTextFieldId
+                            , focusById nameTextFieldId
                             )
 
                 LoggedIn m ->
@@ -315,7 +320,7 @@ updateFromBackend msg model =
                             -- someone else has taken over the Teacher role;
                             -- downgrade ourselves to a Student
                             ( LoggedIn <| initModel beModel [] Student
-                            , Task.attempt (\_ -> NoOpFrontendMsg) <| Browser.Dom.focus nameTextFieldId
+                            , focusById nameTextFieldId
                             )
 
         StateChanged state ->
@@ -555,7 +560,14 @@ onEnter msg =
 -}
 nameTextFieldId : String
 nameTextFieldId =
-    "name"
+    "nameTextField"
+
+
+{-| ibid
+-}
+msgTextAreaId : String
+msgTextAreaId =
+    "msgTextArea"
 
 
 otherState state =
@@ -792,7 +804,9 @@ viewMsgShare model viewHashOf effectiveState disabled =
                         darkgray
             , Bg.color black
             , Font.family [ Font.monospace ]
+            , Inp.focusedOnLoad
             , El.htmlAttribute disabled
+            , El.htmlAttribute <| Attr.id msgTextAreaId
             ]
             { onChange = UpdateMessage
             , text = msgWithHashSuffix model
