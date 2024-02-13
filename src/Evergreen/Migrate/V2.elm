@@ -20,7 +20,7 @@ See <https://dashboard.lamdera.app/docs/evergreen> for more info.
 -}
 
 import Evergreen.V1.Types
-import Evergreen.V2.Types
+import Evergreen.V2.Types exposing (AutoPush(..), Name(..), State(..))
 import Lamdera.Migrations exposing (..)
 
 
@@ -58,11 +58,11 @@ migrate_Types_BackendModel : Evergreen.V1.Types.BackendModel -> Evergreen.V2.Typ
 migrate_Types_BackendModel old =
     { teacher = old.teacher
     , hashPrefixLen = old.hashPrefixLen
-    , draftMessage = (Unimplemented {- Type `Maybe (String)` was added in V2. I need you to set a default value. -})
+    , draftMessage = Nothing
     , messages = old.messages
     , shareRequests = old.shareRequests
     , autoHashing = old.autoHashing |> migrate_Types_AutoHashing
-    , state = (Unimplemented {- Type `Evergreen.V2.Types.State` was added in V2. I need you to set a default value. -})
+    , state = Active
     }
 
 
@@ -104,17 +104,16 @@ migrate_Types_ClientRole old =
 
 migrate_Types_FeModel : Evergreen.V1.Types.FeModel -> Evergreen.V2.Types.FeModel
 migrate_Types_FeModel old =
-    { name = (Unimplemented {- Type `Evergreen.V2.Types.Name` was added in V2. I need you to set a default value. -})
+    { name = Naming ""
     , message = old.message
     , autoHashSuffix = old.autoHashSuffix
     , hashPrefixLen = old.hashPrefixLen
     , messages = old.messages
     , shareRequests = old.shareRequests
     , autoHashing = old.autoHashing |> migrate_Types_AutoHashing
-    , autoPush = (Unimplemented {- Type `Evergreen.V2.Types.AutoPush` was added in V2. I need you to set a default value. -})
+    , autoPush = AutoPushDisabled
     , role = old.role |> migrate_Types_ClientRole
-    , state = (Unimplemented {- Type `Evergreen.V2.Types.State` was added in V2. I need you to set a default value. -})
-    , binaryDigits = (Unimplemented {- Field of type `Evergreen.V1.Types.BinaryDigits` was removed in V2. I need you to do something with the `old.binaryDigits` value if you wish to keep the data, then remove this line. -})
+    , state = Active
     }
 
 
@@ -179,29 +178,6 @@ migrate_Types_FrontendMsg old =
         Evergreen.V1.Types.AutoHash ->
             Evergreen.V2.Types.AutoHash
 
-        notices ->
-            {- @NOTICE `UpdateName String` was added in V2.
-               This is just a reminder in case migrating some subset of the old data to this new value was important.
-               See https://lamdera.com/tips/modified-custom-type for more info.
-            -}
-            {- @NOTICE `AcceptName` was added in V2.
-               This is just a reminder in case migrating some subset of the old data to this new value was important.
-               See https://lamdera.com/tips/modified-custom-type for more info.
-            -}
-            {- @NOTICE `ChangeStateFe Evergreen.V2.Types.State` was added in V2.
-               This is just a reminder in case migrating some subset of the old data to this new value was important.
-               See https://lamdera.com/tips/modified-custom-type for more info.
-            -}
-            {- @NOTICE `PushDraftMessageFe` was added in V2.
-               This is just a reminder in case migrating some subset of the old data to this new value was important.
-               See https://lamdera.com/tips/modified-custom-type for more info.
-            -}
-            {- @NOTICE `ToggleAutoPush` was added in V2.
-               This is just a reminder in case migrating some subset of the old data to this new value was important.
-               See https://lamdera.com/tips/modified-custom-type for more info.
-            -}
-            (Unimplemented {- New constructors were added. I need you to resolve the above notices and then remove this case. -})
-
 
 migrate_Types_ToBackend : Evergreen.V1.Types.ToBackend -> Evergreen.V2.Types.ToBackend
 migrate_Types_ToBackend old =
@@ -233,17 +209,6 @@ migrate_Types_ToBackend old =
         Evergreen.V1.Types.DisableAutoHash ->
             Evergreen.V2.Types.DisableAutoHash
 
-        notices ->
-            {- @NOTICE `ChangeState Evergreen.V2.Types.State` was added in V2.
-               This is just a reminder in case migrating some subset of the old data to this new value was important.
-               See https://lamdera.com/tips/modified-custom-type for more info.
-            -}
-            {- @NOTICE `PushDraftMessage String` was added in V2.
-               This is just a reminder in case migrating some subset of the old data to this new value was important.
-               See https://lamdera.com/tips/modified-custom-type for more info.
-            -}
-            (Unimplemented {- New constructors were added. I need you to resolve the above notices and then remove this case. -})
-
 
 migrate_Types_ToFrontend : Evergreen.V1.Types.ToFrontend -> Evergreen.V2.Types.ToFrontend
 migrate_Types_ToFrontend old =
@@ -251,11 +216,11 @@ migrate_Types_ToFrontend old =
         Evergreen.V1.Types.TeacherLoginOk p0 ->
             Evergreen.V2.Types.TeacherLoginOk
                 { hashPrefixLen = p0.hashPrefixLen
-                , draftMessage = (Unimplemented {- Type `Maybe (String)` was added in V2. I need you to set a default value. -})
+                , draftMessage = Nothing
                 , messages = p0.messages
                 , shareRequests = p0.shareRequests
                 , autoHashing = p0.autoHashing |> migrate_Types_AutoHashing
-                , state = (Unimplemented {- Type `Evergreen.V2.Types.State` was added in V2. I need you to set a default value. -})
+                , state = Active
                 }
 
         Evergreen.V1.Types.TeacherLoginBad ->
@@ -264,10 +229,10 @@ migrate_Types_ToFrontend old =
         Evergreen.V1.Types.TeacherArrived p0 ->
             Evergreen.V2.Types.TeacherArrived
                 { hashPrefixLen = p0.hashPrefixLen
-                , draftMessage = (Unimplemented {- Type `Maybe (String)` was added in V2. I need you to set a default value. -})
+                , draftMessage = Nothing
                 , messages = p0.messages
                 , autoHashing = p0.autoHashing |> migrate_Types_AutoHashing
-                , state = (Unimplemented {- Type `Evergreen.V2.Types.State` was added in V2. I need you to set a default value. -})
+                , state = Active
                 }
 
         Evergreen.V1.Types.PrefixLenUpdated p0 ->
@@ -290,14 +255,3 @@ migrate_Types_ToFrontend old =
 
         Evergreen.V1.Types.AutoHashDisabled ->
             Evergreen.V2.Types.AutoHashDisabled
-
-        notices ->
-            {- @NOTICE `StateChanged Evergreen.V2.Types.State` was added in V2.
-               This is just a reminder in case migrating some subset of the old data to this new value was important.
-               See https://lamdera.com/tips/modified-custom-type for more info.
-            -}
-            {- @NOTICE `DraftMessagePushed String` was added in V2.
-               This is just a reminder in case migrating some subset of the old data to this new value was important.
-               See https://lamdera.com/tips/modified-custom-type for more info.
-            -}
-            (Unimplemented {- New constructors were added. I need you to resolve the above notices and then remove this case. -})
