@@ -718,7 +718,8 @@ viewNamed model n viewHashOf effectiveState disabled =
             [ El.width El.fill, El.height El.fill, El.spacing 20, El.padding 10 ]
         <|
             [ viewToolbar model n
-            , viewMsgShare model viewHashOf effectiveState disabled
+            , El.el [ pausedStamp model, El.width El.fill ] <|
+                viewMsgShare model viewHashOf effectiveState disabled
             , case model.messages of
                 [] ->
                     El.none
@@ -735,6 +736,33 @@ viewNamed model n viewHashOf effectiveState disabled =
                         }
             ]
     ]
+
+
+pausedStamp : FeModel -> El.Attribute msg
+pausedStamp model =
+    El.inFront <|
+        case model.role of
+            Teacher ->
+                El.none
+
+            Student ->
+                case model.state of
+                    Active ->
+                        El.none
+
+                    Paused ->
+                        El.el
+                            [ El.centerX
+                            , El.centerY
+                            , El.rotate <| degrees -30
+                            , Border.color darkgray
+                            , Border.width 2
+                            , Border.rounded 7
+                            , El.padding 5
+                            , Border.dashed
+                            ]
+                        <|
+                            El.text "One Two Three\nEyes On Me"
 
 
 msgTeacherActions : FeModel -> List (ColumnButton FrontendMsg)
