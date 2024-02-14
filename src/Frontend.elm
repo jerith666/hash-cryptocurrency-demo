@@ -916,7 +916,7 @@ viewMsgTable messages colButtons viewHashOf =
                                 , El.paddingXY 0 5
                                 ]
                             <|
-                                El.text m
+                                El.paragraph [ El.htmlAttribute <| Attr.style "overflow-wrap" "anywhere" ] [ El.text m ]
                      }
                    , { header = El.text "Hash"
                      , width = El.maximum hashDisplayWidth El.fill
