@@ -382,21 +382,29 @@ updateFromBackend msg model =
                     unexpected msg model
 
                 LoggedIn m ->
-                    let
-                        subbedMessage =
-                            case m.name of
-                                Naming _ ->
-                                    message
+                    case m.role of
+                        Teacher ->
+                            -- network delays mean draft message pushes can clobber
+                            -- quick typing on the teacher side; ignore them since
+                            -- the teacher by definition already has the pushed message
+                            ( model, Cmd.none )
 
-                                Named n ->
-                                    case m.role of
-                                        Student ->
-                                            String.replace "$name" n message
-
-                                        Teacher ->
+                        Student ->
+                            let
+                                subbedMessage =
+                                    case m.name of
+                                        Naming _ ->
                                             message
-                    in
-                    ( LoggedIn { m | message = subbedMessage }, Cmd.none )
+
+                                        Named n ->
+                                            case m.role of
+                                                Student ->
+                                                    String.replace "$name" n message
+
+                                                Teacher ->
+                                                    message
+                            in
+                            ( LoggedIn { m | message = subbedMessage }, Cmd.none )
 
         MessageDeleted message ->
             case model of
