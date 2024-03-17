@@ -490,6 +490,16 @@ darkgray =
     El.rgb 0.3 0.3 0.3
 
 
+darkishgray : El.Color
+darkishgray =
+    El.rgb 0.375 0.375 0.375
+
+
+yellow : El.Color
+yellow =
+    El.rgb 1 1 0
+
+
 fullScreenWhiteOnBlack : El.Element msg -> Html msg
 fullScreenWhiteOnBlack =
     El.layout
@@ -651,8 +661,8 @@ viewLoggedIn model =
 
                     ( Just zeros, remainder ) ->
                         [ El.el
-                            [ Bg.color <| El.rgb 0.375 0.375 0.375
-                            , Font.color <| El.rgb 1 1 0
+                            [ Bg.color darkishgray
+                            , Font.color yellow
                             ]
                           <|
                             El.text zeros
