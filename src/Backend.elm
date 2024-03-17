@@ -5,10 +5,6 @@ import Lamdera exposing (ClientId, SessionId, broadcast, onConnect, sendToFronte
 import Types exposing (..)
 
 
-type alias Model =
-    BackendModel
-
-
 app =
     Lamdera.backend
         { init = init
@@ -18,7 +14,7 @@ app =
         }
 
 
-init : ( Model, Cmd BackendMsg )
+init : ( BackendModel, Cmd BackendMsg )
 init =
     ( { teacher = Nothing
       , hashPrefixLen = 1
@@ -32,7 +28,7 @@ init =
     )
 
 
-update : BackendMsg -> Model -> ( Model, Cmd BackendMsg )
+update : BackendMsg -> BackendModel -> ( BackendModel, Cmd BackendMsg )
 update msg model =
     case msg of
         NewClient sessionId clientId ->
@@ -68,7 +64,7 @@ update msg model =
                     ( model, Cmd.none )
 
 
-updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
+updateFromFrontend : SessionId -> ClientId -> ToBackend -> BackendModel -> ( BackendModel, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     let
         withTeacher modelCmd =
