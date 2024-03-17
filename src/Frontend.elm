@@ -532,10 +532,16 @@ viewAnon password state =
             ]
 
         LoginInProgress ->
-            [ Html.text "logging in ..." ]
+            [ fullScreenWhiteOnBlack <|
+                El.el [ El.centerX, El.centerY ] <|
+                    El.text "logging in ..."
+            ]
 
         LoginFailed ->
-            [ Html.text "login failed" ]
+            [ fullScreenWhiteOnBlack <|
+                El.el [ El.centerX, El.centerY ] <|
+                    El.text "login failed"
+            ]
 
         LoginUnattempted ->
             [ fullScreenWhiteOnBlack <|
