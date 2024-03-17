@@ -65,7 +65,9 @@ update msg model =
         Login ->
             case model of
                 AnonFrontend password _ ->
-                    ( AnonFrontend password LoginInProgress, sendToBackend <| TeacherLogin password )
+                    ( AnonFrontend password LoginInProgress
+                    , sendToBackend <| TeacherLogin password
+                    )
 
                 LoggedIn _ ->
                     unexpected msg model
