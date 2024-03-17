@@ -3,19 +3,13 @@ module Types exposing (..)
 import Lamdera exposing (ClientId, SessionId)
 
 
-type ClientRole
-    = Student
-    | Teacher
+
+-- front end
 
 
-type AutoHashing
-    = Enabled Int
-    | Disabled
-
-
-type AutoPush
-    = AutoPushEnabled
-    | AutoPushDisabled
+type FrontendModel
+    = AnonFrontend String AnonState
+    | LoggedIn LoggedInModel
 
 
 type AnonState
@@ -25,22 +19,7 @@ type AnonState
     | WaitingForTeacher
 
 
-type FrontendModel
-    = AnonFrontend String AnonState
-    | LoggedIn FeModel
-
-
-type State
-    = Active
-    | Paused
-
-
-type Name
-    = Naming String
-    | Named String
-
-
-type alias FeModel =
+type alias LoggedInModel =
     { name : Name
     , message : String
     , autoHashSuffix : Maybe Int
@@ -54,20 +33,33 @@ type alias FeModel =
     }
 
 
-type alias BackendModel =
-    { teacher : Maybe SessionId
-    , hashPrefixLen : Int
-    , draftMessage : Maybe String
-    , messages : List String
-    , shareRequests : List String
-    , autoHashing : AutoHashing
-    , state : State
-    }
+type Name
+    = Naming String
+    | Named String
+
+
+type AutoHashing
+    = Enabled Int
+    | Disabled
+
+
+type AutoPush
+    = AutoPushEnabled
+    | AutoPushDisabled
+
+
+type ClientRole
+    = Student
+    | Teacher
+
+
+type State
+    = Active
+    | Paused
 
 
 type FrontendMsg
-    = NoOpFrontendMsg
-    | SetPassword String
+    = SetPassword String
     | Login
     | WaitForTeacher
     | ReLogin
@@ -87,6 +79,30 @@ type FrontendMsg
     | DisableAutoHashFe
     | UpdateAutoHashPrefixLen String
     | AutoHash
+    | NoOpFrontendMsg
+
+
+
+-- back end
+
+
+type alias BackendModel =
+    { teacher : Maybe SessionId
+    , hashPrefixLen : Int
+    , draftMessage : Maybe String
+    , messages : List String
+    , shareRequests : List String
+    , autoHashing : AutoHashing
+    , state : State
+    }
+
+
+type BackendMsg
+    = NewClient SessionId ClientId
+
+
+
+-- front end <-> back end
 
 
 type ToBackend
@@ -101,10 +117,6 @@ type ToBackend
     | ClearMessages
     | EnableAutoHash
     | DisableAutoHash
-
-
-type BackendMsg
-    = NewClient SessionId ClientId
 
 
 type ToFrontend

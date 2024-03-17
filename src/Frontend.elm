@@ -24,10 +24,6 @@ import Types exposing (..)
 import Url
 
 
-type alias Model =
-    FrontendModel
-
-
 app =
     Lamdera.frontend
         { init = init
@@ -40,14 +36,14 @@ app =
         }
 
 
-init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
+init : Url.Url -> Nav.Key -> ( FrontendModel, Cmd FrontendMsg )
 init _ _ =
     ( AnonFrontend "" LoginUnattempted
     , Cmd.none
     )
 
 
-update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
+update : FrontendMsg -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 update msg model =
     case msg of
         SetPassword password ->
@@ -228,7 +224,7 @@ update msg model =
             ( model, Cmd.none )
 
 
-autohash : FeModel -> ( Model, Cmd FrontendMsg )
+autohash : LoggedInModel -> ( FrontendModel, Cmd FrontendMsg )
 autohash model =
     case model.autoHashing of
         Disabled ->
@@ -256,7 +252,7 @@ autohash model =
                     )
 
 
-msgWithHashSuffix : FeModel -> String
+msgWithHashSuffix : LoggedInModel -> String
 msgWithHashSuffix m =
     case m.autoHashSuffix of
         Nothing ->
@@ -285,7 +281,7 @@ focusById id =
     Task.attempt (\_ -> NoOpFrontendMsg) <| Browser.Dom.focus id
 
 
-updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
+updateFromBackend : ToFrontend -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 updateFromBackend msg model =
     let
         initModel beModel shareRequests role =
@@ -514,7 +510,7 @@ styledButton attrs =
             ++ attrs
 
 
-view : Model -> Browser.Document FrontendMsg
+view : FrontendModel -> Browser.Document FrontendMsg
 view model =
     { title = "Hash and Cryptocurrency Demo"
     , body =
@@ -613,7 +609,7 @@ otherState state =
             Active
 
 
-viewLoggedIn : FeModel -> List (Html FrontendMsg)
+viewLoggedIn : LoggedInModel -> List (Html FrontendMsg)
 viewLoggedIn model =
     let
         disabled =
@@ -691,7 +687,7 @@ hashDisplayWidth =
     100
 
 
-ifTeacher : FeModel -> El.Element msg -> El.Element msg
+ifTeacher : LoggedInModel -> El.Element msg -> El.Element msg
 ifTeacher model el =
     case model.role of
         Student ->
@@ -701,7 +697,7 @@ ifTeacher model el =
             el
 
 
-ifStudent : FeModel -> El.Element msg -> El.Element msg
+ifStudent : LoggedInModel -> El.Element msg -> El.Element msg
 ifStudent model el =
     case model.role of
         Student ->
@@ -711,7 +707,7 @@ ifStudent model el =
             El.none
 
 
-viewNamed : FeModel -> String -> (String -> El.Element FrontendMsg) -> State -> Html.Attribute FrontendMsg -> List (Html FrontendMsg)
+viewNamed : LoggedInModel -> String -> (String -> El.Element FrontendMsg) -> State -> Html.Attribute FrontendMsg -> List (Html FrontendMsg)
 viewNamed model n viewHashOf effectiveState disabled =
     [ fullScreenWhiteOnBlack <|
         El.column
@@ -738,7 +734,7 @@ viewNamed model n viewHashOf effectiveState disabled =
     ]
 
 
-pausedStamp : FeModel -> El.Attribute msg
+pausedStamp : LoggedInModel -> El.Attribute msg
 pausedStamp model =
     El.inFront <|
         case model.role of
@@ -765,7 +761,7 @@ pausedStamp model =
                             El.text "One Two Three\nEyes On Me"
 
 
-msgTeacherActions : FeModel -> List (ColumnButton FrontendMsg)
+msgTeacherActions : LoggedInModel -> List (ColumnButton FrontendMsg)
 msgTeacherActions model =
     case model.role of
         Student ->
@@ -775,7 +771,7 @@ msgTeacherActions model =
             [ { label = "X", header = "", msg = DeleteMessageFe } ]
 
 
-msgShareReqActions : FeModel -> List (ColumnButton FrontendMsg)
+msgShareReqActions : LoggedInModel -> List (ColumnButton FrontendMsg)
 msgShareReqActions model =
     case model.role of
         Student ->
@@ -787,7 +783,7 @@ msgShareReqActions model =
             ]
 
 
-viewToolbar : FeModel -> String -> El.Element FrontendMsg
+viewToolbar : LoggedInModel -> String -> El.Element FrontendMsg
 viewToolbar model n =
     El.row
         [ El.alignTop
@@ -866,7 +862,7 @@ viewToolbar model n =
         ]
 
 
-viewMsgShare : FeModel -> (String -> El.Element FrontendMsg) -> State -> Html.Attribute FrontendMsg -> El.Element FrontendMsg
+viewMsgShare : LoggedInModel -> (String -> El.Element FrontendMsg) -> State -> Html.Attribute FrontendMsg -> El.Element FrontendMsg
 viewMsgShare model viewHashOf effectiveState disabled =
     El.row
         [ El.spacingXY 20 0, El.width El.fill ]
