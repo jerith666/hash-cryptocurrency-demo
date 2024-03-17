@@ -18,19 +18,11 @@ type alias DigitModel =
     }
 
 
-baseTen : NumberSystem
-baseTen =
-    { nullity = '0'
-    , unity = '1'
-    , digits = [ '2', '3', '4', '5', '6', '7', '8', '9' ]
-    }
-
-
 baseSixtyTwo : NumberSystem
 baseSixtyTwo =
     { nullity = '0'
     , unity = '1'
-    , digits = String.foldr (::) [] "23456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    , digits = String.toList "23456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     }
 
 
