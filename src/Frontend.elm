@@ -643,12 +643,9 @@ viewLoggedIn model =
                 Teacher ->
                     Active
 
-        hashFn =
-            hash model.hashPrefixLen
-
         viewHashOf msg =
             El.paragraph [ Font.family [ Font.monospace ] ] <|
-                case splitLeadingZeros <| hashFn msg of
+                case splitLeadingZeros <| hash model.hashPrefixLen <| msg of
                     ( Nothing, remainder ) ->
                         [ El.text remainder ]
 
