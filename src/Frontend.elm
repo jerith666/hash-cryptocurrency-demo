@@ -525,6 +525,7 @@ view model =
     }
 
 
+viewAnon : String.String -> AnonState -> List (Html FrontendMsg)
 viewAnon password state =
     case state of
         WaitingForTeacher ->
@@ -608,6 +609,7 @@ msgTextAreaId =
     "msgTextArea"
 
 
+otherState : State -> State
 otherState state =
     case state of
         Active ->
