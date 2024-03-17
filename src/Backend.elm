@@ -167,7 +167,9 @@ updateFromFrontend sessionId clientId msg model =
 
         ClearMessages ->
             ifTeacher
-                ( { model | messages = [] }, broadcast MessagesCleared )
+                ( { model | messages = [] }
+                , broadcast MessagesCleared
+                )
 
         EnableAutoHash ->
             ifTeacher
