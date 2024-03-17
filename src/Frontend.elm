@@ -818,12 +818,9 @@ viewToolbar model n =
                     [ ifTeacher model <|
                         styledButton [] { onPress = Just DisableAutoHashFe, label = El.text "💻 Off" }
                     , ifStudent model <| El.text "Make it start with "
-                    , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 60, El.htmlAttribute <| Attr.type_ "number" ]
-                        { onChange = UpdateAutoHashPrefixLen
-                        , text = String.fromInt autoDigits
-                        , placeholder = Nothing
-                        , label = Inp.labelHidden "Automatic Hashing Digits"
-                        }
+                    , numericInput UpdateAutoHashPrefixLen
+                        (String.fromInt autoDigits)
+                        "Automatic Hashing Digits"
                     , ifStudent model <| El.text " zeros "
                     , styledButton []
                         { onPress = Just AutoHash
@@ -833,12 +830,9 @@ viewToolbar model n =
         , ifTeacher model <|
             El.row [ El.alignRight, El.width El.shrink ]
                 [ El.text "Show "
-                , Inp.text [ Font.color white, Bg.color black, El.width <| El.px 60, El.htmlAttribute <| Attr.type_ "number" ]
-                    { onChange = UpdatePrefixLenFe
-                    , text = fromInt model.hashPrefixLen
-                    , placeholder = Nothing
-                    , label = Inp.labelHidden "Hash Prefix Length"
-                    }
+                , numericInput UpdatePrefixLenFe
+                    (fromInt model.hashPrefixLen)
+                    "Hash Prefix Length"
                 , El.text " digits"
                 ]
         , ifTeacher model <|
@@ -877,6 +871,21 @@ viewToolbar model n =
         , El.el [ El.alignRight, El.alignTop ]
             (El.text <| "👤 " ++ n)
         ]
+
+
+numericInput : (String -> msg) -> String -> String -> El.Element msg
+numericInput onChange text label =
+    Inp.text
+        [ Font.color white
+        , Bg.color black
+        , El.width <| El.px 60
+        , El.htmlAttribute <| Attr.type_ "number"
+        ]
+        { onChange = onChange
+        , text = text
+        , placeholder = Nothing
+        , label = Inp.labelHidden label
+        }
 
 
 viewMsgShare : LoggedInModel -> (String -> El.Element FrontendMsg) -> State -> Html.Attribute FrontendMsg -> El.Element FrontendMsg
@@ -957,7 +966,8 @@ viewMsgTable messages colButtons viewHashOf =
                                 , El.paddingXY 0 5
                                 ]
                             <|
-                                El.paragraph [ El.htmlAttribute <| Attr.style "overflow-wrap" "anywhere" ] [ El.text m ]
+                                El.paragraph [ El.htmlAttribute <| Attr.style "overflow-wrap" "anywhere" ]
+                                    [ El.text m ]
                      }
                    , { header = El.text "Hash"
                      , width = El.maximum hashDisplayWidth El.fill
